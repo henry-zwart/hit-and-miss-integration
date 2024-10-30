@@ -30,21 +30,28 @@ def mandelbrot(x, y, iterations):
 
 
 def random_sampling(n):
+    """ Function for the pure random sampling. """
     return np.reshape(np.random.uniform(-2, 2, n*2), shape=(n,2))
 
 
 def hypercube_sampling(n):
+    """ Function for the latin hyercube sampling. """
     sampler = qmc.LatinHypercube(d=2, strength=1)
     samples = sampler.random(n)
     return samples
 
 def orthognonal_sampling(n):
+    """ Function for the orthogonal sampling. """
     sampler = qmc.LatinHypercube(d=2, strength=2)
     samples = sampler.random(n)
     return samples
 
 
 def calculate_area(iterations, samples):
+    """
+    Using the generated sample points, this function calculates the 
+    area of the Mandel brot set.
+    """
     hits = 0 # number of points inside mandelbrot set area
 
     for elem in samples:
