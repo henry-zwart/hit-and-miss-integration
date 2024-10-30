@@ -1,8 +1,24 @@
+"""
+    Course: Stochastic Simulation
+    Assignement 1: Hit and Miss Integration
+    Names: Tika van Bennekum, ..., ...
+    Student numbers: 13392425, ..., ...
+
+    Description:
+        ...
+
+"""
+
 import numpy as np
 from scipy.stats import qmc
 
 # function defining a mandelbrot
 def mandelbrot(x, y, iterations):
+    """
+    This function takes a sample point (x, y) and calculates using the nr of 
+    iterations wheter it falls within the area of the Mandel brot set or not.
+    If it does, 1 is returned and if not 0 is returned.
+    """
     c0 = complex(x, y) # The complex number that is the starting point
 
     z = 0
