@@ -1,0 +1,7 @@
+version = 1
+requires-python = ">=3.12"
+
+[[package]]
+name = "hit-and-miss-integration"
+version = "0.1.0"
+source = { editable = "." }

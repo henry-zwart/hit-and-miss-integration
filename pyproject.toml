@@ -5,3 +5,10 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = []
+
+[project.scripts]
+hit-and-miss = "hit_and_miss_integration:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
