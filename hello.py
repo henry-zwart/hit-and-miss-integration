@@ -22,7 +22,7 @@ def mandelbrot(x, y, iterations):
     c0 = complex(x, y) # The complex number that is the starting point
 
     z = 0
-    for i in range(1, iterations):
+    for _ in range(1, iterations):
         if abs(z) > 2: # a circle with radius 2, goes around mandelbrot set
             return 0
         z = z * z + c0
