@@ -3,6 +3,12 @@ name = "hit-and-miss-integration"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
+authors = [
+    { name = "Henry Zwart", email = "henrybzwart@gmail.com" },
+    { name = "Tika van Bennekum" },
+    { name = "Petr Chaluspky" },
+]
+
 requires-python = ">=3.12"
 dependencies = [
     "numpy>=2.1.2",
