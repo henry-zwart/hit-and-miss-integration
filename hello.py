@@ -7,6 +7,14 @@
     Description:
         ...
 
+    next steps:
+    - rewrite calculate_area to keep track of hits
+    - calculate difference for different nr of samples
+
+    - use this information to perform experiments with balanced i and s
+
+    - improve model (perhaps baysian estimation)
+
 """
 
 import numpy as np
@@ -63,25 +71,33 @@ def calculate_area(iterations, samples):
     return (hits / len(samples)) * 16
 
 
-def iteration_area_difference(iterations,samples):
-    area_i = np.zeros(iterations)
-    area_M = calculate_area(iterations, samples)
-    for i in range(iterations):
-	area_i[i] = calculate_area(i,samples)
-    diff_area = area_i - area_M
+def iteration_area_difference_i(iterations,samples):
+    area_i = np.zeros(iterations + 1)
+    # area_M = calculate_area(iterations, samples)
+    for i in range(iterations + 1):
+        area_i[i] = calculate_area(i,samples)
+    diff_area = np.abs(area_i - area_i[-1])
     
-    return diff_area    
+    print(area_i[-20:])
+    return diff_area
 
 iterations = 100
-samples = random_sampling(1000)
-results = iteration_area_difference(iterations,samples)
-plt.plot(np.arange(iterations),results)
+n = 100000
+
+x = np.arange(iterations + 1)
+samples = random_sampling(n)
+results = iteration_area_difference_i(iterations,samples)
+
+fig, ax = plt.subplots()
+
+ax.plot(x[20:], results[20:])
+# ax.set_yscale("log")
+# ax.axhline(results[-1], color="red")
+# plt.ylim(0)
+ax.set_xlabel("Number of iterations")
+ax.set_ylabel("Difference")
 plt.show() 
+plt.savefig()
 	 	
-	
-	
-
-
 print(random_sampling(10))
-# result = calculate_area(10000, 500)
-# print(result)
+
