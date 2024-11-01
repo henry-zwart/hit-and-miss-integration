@@ -1,10 +1,4 @@
 repos:
-  # nbstripout: remove jupyter cell outputs
-  - repo: https://github.com/kynan/nbstripout
-    rev: 0.7.1
-    hooks:
-      - id: nbstripout
-
   # ruff: lint and format .py and .ipynb files
   - repo: https://github.com/astral-sh/ruff-pre-commit
     # Ruff version.
