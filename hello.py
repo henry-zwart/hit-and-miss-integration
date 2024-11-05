@@ -59,46 +59,56 @@ def orthognonal_sampling(n):
     return samples
 
 
-def calculate_area(iterations, samples):
+def calculate_proportion(iterations, samples):
     """
     Using the generated sample points, this function calculates the
     area of the Mandel brot set.
     """
-    hits = 0  # number of points inside mandelbrot set area
+    hits_list = []  # number of points inside mandelbrot set area
 
     for elem in samples:
-        hits += mandelbrot(elem[0], elem[1], iterations)
+        hits_list.append(mandelbrot(elem[0], elem[1], iterations))
 
-    return (hits / len(samples)) * 16
+    hits_proportion_list = np.array(hits_list, dtype=float).cumsum() / np.arange(
+        1, len(samples) + 1
+    )
+    return hits_proportion_list
 
 
-def iteration_area_difference_i(iterations, samples):
-    area_i = np.zeros(iterations + 1)
+def calculate_area(iterations, samples):
+    area = np.zeros((iterations + 1, len(samples)))
     # area_M = calculate_area(iterations, samples)
     for i in range(iterations + 1):
-        area_i[i] = calculate_area(i, samples)
-    diff_area = np.abs(area_i - area_i[-1])
+        area[i] = calculate_proportion(i, samples) * 16
 
-    print(area_i[-20:])
-    return diff_area
+    return area
 
 
 if __name__ == "__main__":
     iterations = 100
     n = 100000
 
-    x = np.arange(iterations + 1)
-    samples = random_sampling(n)
-    results = iteration_area_difference_i(iterations, samples)
+    fig, ax = plt.subplots(2)
 
-    fig, ax = plt.subplots()
+    for i in range(5):
+        x = np.arange(iterations + 1)
+        y = np.arange(n)
+        samples = random_sampling(n)
 
-    ax.plot(x[20:], results[20:])
+        results = calculate_area(iterations, samples)
+
+        iteration_convergence = np.abs(results - results[-1])
+        sample_convergence = np.abs(results[:, :] - np.expand_dims(results[:, -1], 1))
+        print(iteration_convergence.shape)
+
+        ax[0].plot(x[20:], iteration_convergence[20:, -1])
+        ax[1].plot(y[20:], sample_convergence[-1, 20:])
+
     # ax.set_yscale("log")
     # ax.axhline(results[-1], color="red")
     # plt.ylim(0)
-    ax.set_xlabel("Number of iterations")
-    ax.set_ylabel("Difference")
+    #    ax.set_xlabel("Number of iterations")
+    #    ax.set_ylabel("Difference")
     plt.show()
     plt.savefig("fig.png")
 
