@@ -9,11 +9,13 @@ automatic code linting & formatting.
 
 1. Install [uv](https://github.com/astral-sh/uv)
 
-2. Install pre-commit:
+2. Navigate to this project directory
+
+3. Install pre-commit:
 
 ```zsh
 # We can use uv to install pre-commit!
-uvx install pre-commit --with pre-commit-uv --force-reinstall
+uv tool install pre-commit --with pre-commit-uv --force-reinstall
 
 # Check that pre-commit installed alright (should say 3.8.0 or similar)
 pre-commit --version
@@ -26,7 +28,7 @@ pre-commit install
 pre-commit run --all-files
 ```
 
-3. Run code:
+4. Run code:
 
 ```zsh
 uv run <PATH-TO-PYTHON-FILE>
