@@ -96,7 +96,7 @@ def balance_i_s(iterations, n):
     Calculating error for many different amount of sample points, (mean taken over 5).
     Calculating error for many different amount of iterations, (mean taken over 5).
     """
-    nr_of_runs = 0
+    nr_of_runs = 2
     all_sample_convergence = []
     all_iteration_convergence = []
     for _ in range(nr_of_runs):
@@ -181,7 +181,12 @@ def plot_area_balanced(iterations, n):
         list_area.append(calculate_proportion(list_iterations[i], samples)[-1] * 16)
 
     # plot
-    print(list_area)
+    print("list_area: ", list_area)
+    print("list_samples: ", list_samples)
+    print("list_iterations: ", list_iterations)
+    plt.title("Area of Mandelbrot set, with balanced (s, i) combinations taken")
+    plt.ylabel("area of Mandelbrot set")
+    plt.xlabel("error")
     plt.plot([0.05, 0.04, 0.03, 0.02, 0.01], list_area)
     plt.show()
 
