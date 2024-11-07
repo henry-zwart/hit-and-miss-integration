@@ -96,7 +96,7 @@ def balance_i_s(iterations, n):
     Calculating error for many different amount of sample points, (mean taken over 5).
     Calculating error for many different amount of iterations, (mean taken over 5).
     """
-    nr_of_runs = 2
+    nr_of_runs = 5
     all_sample_convergence = []
     all_iteration_convergence = []
     for _ in range(nr_of_runs):
@@ -147,31 +147,21 @@ def plot_area_balanced(iterations, n):
         sample_convergence[-1, 10000:],
     )
 
+    list_errors =  np.arange(0.001, 0.0022, 0.0002)[::-1]
+
     # Finds the number of iterations for certain error values
-    for i, elem in enumerate(iteration_convergence):
-        if elem < 0.05 and len(list_iterations) == 0:
-            list_iterations.append(i + 1)
-        elif elem < 0.04 and len(list_iterations) == 1:
-            list_iterations.append(i + 1)
-        elif elem < 0.03 and len(list_iterations) == 2:
-            list_iterations.append(i + 1)
-        elif elem < 0.02 and len(list_iterations) == 3:
-            list_iterations.append(i + 1)
-        elif elem < 0.01 and len(list_iterations) == 4:
-            list_iterations.append(i + 1)
+    for error in list_errors:
+        for i, elem in enumerate(iteration_convergence):
+            if elem < error:
+                list_iterations.append(i + 1)
+                break
 
     # Finds the number of sample points for certain error values
-    for i, elem in enumerate(sample_convergence):
-        if elem < 0.05 and len(list_samples) == 0:
-            list_samples.append(i + 1)
-        elif elem < 0.04 and len(list_samples) == 1:
-            list_samples.append(i + 1)
-        elif elem < 0.03 and len(list_samples) == 2:
-            list_samples.append(i + 1)
-        elif elem < 0.02 and len(list_samples) == 3:
-            list_samples.append(i + 1)
-        elif elem < 0.01 and len(list_samples) == 4:
-            list_samples.append(i + 1)
+    for error in list_errors:
+        for i, elem in enumerate(sample_convergence):
+            if elem < error:
+                list_samples.append(i + 1)
+                break
 
     list_area = []
 
@@ -187,7 +177,7 @@ def plot_area_balanced(iterations, n):
     plt.title("Area of Mandelbrot set, with balanced (s, i) combinations taken")
     plt.ylabel("area of Mandelbrot set")
     plt.xlabel("error")
-    plt.plot([0.05, 0.04, 0.03, 0.02, 0.01], list_area)
+    plt.scatter(list_errors, list_area)
     plt.show()
 
 
