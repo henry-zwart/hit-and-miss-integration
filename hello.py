@@ -20,6 +20,7 @@ next steps:
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.stats import qmc
+# from tqdm import trange
 
 
 def mandelbrot(x, y, iterations):
@@ -91,16 +92,21 @@ def balance_i_s(iterations, n):
     """
     all_sample_convergence = []
     all_iteration_convergence = []
-    for _ in range(5):
+    for _ in range(1):
         print("hey")
         samples = random_sampling(n)
-
         results = calculate_area(iterations, samples)
 
         all_iteration_convergence.append(np.abs(results - results[-1]))
-        all_sample_convergence.append(np.abs(results[:, :] - np.expand_dims(results[:, -1], 1)))
+        all_sample_convergence.append(
+            np.abs(results[:, :] - np.expand_dims(results[:, -1], 1))
+        )
 
-    return(np.mean(all_iteration_convergence, axis=0), np.mean(all_sample_convergence, axis=0))
+    return (
+        np.mean(all_iteration_convergence, axis=0),
+        np.mean(all_sample_convergence, axis=0),
+    )
+
 
 def plot_balance_i_s(iterations, n):
     """
@@ -117,8 +123,52 @@ def plot_balance_i_s(iterations, n):
     plt.savefig("fig.png")
 
 
-# def plot_area():
-    
+def plot_area_balanced(iterations, n):
+    """
+    Finds the number of sample points and number of iterations for certain error values
+    """
+    list_iterations = []
+    list_samples = []
+
+    iteration_convergence, sample_convergence = balance_i_s(iterations, n)
+    iteration_convergence, sample_convergence = (
+        iteration_convergence[20:, -1],
+        sample_convergence[-1, 10000:],
+    )
+
+    for i, elem in enumerate(iteration_convergence):
+        if elem < 0.05 and len(list_iterations) == 0:
+            list_iterations.append(i + 1)
+        elif elem < 0.04 and len(list_iterations) == 1:
+            list_iterations.append(i + 1)
+        elif elem < 0.03 and len(list_iterations) == 2:
+            list_iterations.append(i + 1)
+        elif elem < 0.02 and len(list_iterations) == 3:
+            list_iterations.append(i + 1)
+        elif elem < 0.01 and len(list_iterations) == 4:
+            list_iterations.append(i + 1)
+
+    for i, elem in enumerate(sample_convergence):
+        if elem < 0.05 and len(list_samples) == 0:
+            list_samples.append(i + 1)
+        elif elem < 0.04 and len(list_samples) == 1:
+            list_samples.append(i + 1)
+        elif elem < 0.03 and len(list_samples) == 2:
+            list_samples.append(i + 1)
+        elif elem < 0.02 and len(list_samples) == 3:
+            list_samples.append(i + 1)
+        elif elem < 0.01 and len(list_samples) == 4:
+            list_samples.append(i + 1)
+    list_area = []
+    for i in range(len(list_iterations)):
+        samples = random_sampling(list_samples[i])
+        list_area.append(calculate_proportion(list_iterations[i], samples)[-1] * 16)
+    print(list_area)
+    plt.plot([0.05, 0.04, 0.03, 0.02, 0.01], list_area)
+    plt.show()
+
 
 if __name__ == "__main__":
-    plot_balance_i_s(100, 100000)
+    # plot_balance_i_s(100, 100000)
+    plot_area_balanced(100, 100000)
+    # balance_i_s(100, 10000)
