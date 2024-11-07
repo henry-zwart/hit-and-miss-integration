@@ -84,32 +84,34 @@ def calculate_area(iterations, samples):
     return area
 
 
-if __name__ == "__main__":
-    iterations = 100
-    n = 100000
-
-    fig, ax = plt.subplots(2)
-
-    for i in range(5):
-        x = np.arange(iterations + 1)
-        y = np.arange(n)
+def balance_i_s(iterations, n):
+    all_sample_convergence = []
+    all_iteration_convergence = []
+    for _ in range(5):
+        print("hey")
         samples = random_sampling(n)
 
         results = calculate_area(iterations, samples)
 
-        iteration_convergence = np.abs(results - results[-1])
-        sample_convergence = np.abs(results[:, :] - np.expand_dims(results[:, -1], 1))
-        print(iteration_convergence.shape)
+        all_iteration_convergence.append(np.abs(results - results[-1]))
+        all_sample_convergence.append(np.abs(results[:, :] - np.expand_dims(results[:, -1], 1)))
 
-        ax[0].plot(x[20:], iteration_convergence[20:, -1])
-        ax[1].plot(y[20:], sample_convergence[-1, 20:])
+    return(np.mean(all_iteration_convergence, axis=0), np.mean(all_sample_convergence, axis=0))
 
-    # ax.set_yscale("log")
-    # ax.axhline(results[-1], color="red")
-    # plt.ylim(0)
-    #    ax.set_xlabel("Number of iterations")
-    #    ax.set_ylabel("Difference")
+def plot_balance_i_s(iterations, n):
+    iteration_convergence, sample_convergence = balance_i_s(iterations, n)
+    x = np.arange(iterations + 1)
+    y = np.arange(n)
+
+    fig, ax = plt.subplots(2)
+    ax[0].plot(x[20:], iteration_convergence[20:, -1])
+    ax[1].plot(y[10000:], sample_convergence[-1, 10000:])
     plt.show()
     plt.savefig("fig.png")
 
-    print(random_sampling(10))
+
+# def plot_area():
+    
+
+if __name__ == "__main__":
+    plot_balance_i_s(100, 100000)
