@@ -85,6 +85,10 @@ def calculate_area(iterations, samples):
 
 
 def balance_i_s(iterations, n):
+    """
+    Calculating error for many different amount of sample points, (mean taken over 5).
+    Calculating error for many different amount of iterations, (mean taken over 5).
+    """
     all_sample_convergence = []
     all_iteration_convergence = []
     for _ in range(5):
@@ -99,6 +103,9 @@ def balance_i_s(iterations, n):
     return(np.mean(all_iteration_convergence, axis=0), np.mean(all_sample_convergence, axis=0))
 
 def plot_balance_i_s(iterations, n):
+    """
+    Plot calculated errors.
+    """
     iteration_convergence, sample_convergence = balance_i_s(iterations, n)
     x = np.arange(iterations + 1)
     y = np.arange(n)
