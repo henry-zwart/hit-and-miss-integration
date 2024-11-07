@@ -8,10 +8,10 @@ Description:
     ...
 
 next steps:
-- rewrite calculate_area to keep track of hits
-- calculate difference for different nr of samples
+- rewrite calculate_area to keep track of hits: DONE
+- calculate difference for different nr of samples: DONE
 
-- use this information to perform experiments with balanced i and s
+- use this information to perform experiments with balanced i and s: IN ACTION
 
 - improve model (perhaps baysian estimation)
 
@@ -63,7 +63,7 @@ def orthognonal_sampling(n):
 def calculate_proportion(iterations, samples):
     """
     Using the generated sample points, this function calculates the
-    area of the Mandel brot set.
+    proportion of hits to the total amount of sample points.
     """
     hits_list = []  # number of points inside mandelbrot set area
 
@@ -77,6 +77,12 @@ def calculate_proportion(iterations, samples):
 
 
 def calculate_area(iterations, samples):
+    """
+    Takes the proportional hits from calculate_proportion and uses it to calculate area of
+    Mandelbrot set.
+    It returns a matrix of results from all combinations of number of iterations
+    and number of sample points.
+    """
     area = np.zeros((iterations + 1, len(samples)))
     # area_M = calculate_area(iterations, samples)
     for i in range(iterations + 1):
@@ -90,9 +96,10 @@ def balance_i_s(iterations, n):
     Calculating error for many different amount of sample points, (mean taken over 5).
     Calculating error for many different amount of iterations, (mean taken over 5).
     """
+    nr_of_runs = 0
     all_sample_convergence = []
     all_iteration_convergence = []
-    for _ in range(1):
+    for _ in range(nr_of_runs):
         print("hey")
         samples = random_sampling(n)
         results = calculate_area(iterations, samples)
@@ -125,17 +132,22 @@ def plot_balance_i_s(iterations, n):
 
 def plot_area_balanced(iterations, n):
     """
-    Finds the number of sample points and number of iterations for certain error values
+    Finds the number of sample points and number of iterations for certain error values.
+    Calculates area for these found values.
+    Plots result.
     """
     list_iterations = []
     list_samples = []
 
+    # gets error for different values
     iteration_convergence, sample_convergence = balance_i_s(iterations, n)
+    # selects right/relevant parts of arrays
     iteration_convergence, sample_convergence = (
         iteration_convergence[20:, -1],
         sample_convergence[-1, 10000:],
     )
 
+    # Finds the number of iterations for certain error values
     for i, elem in enumerate(iteration_convergence):
         if elem < 0.05 and len(list_iterations) == 0:
             list_iterations.append(i + 1)
@@ -148,6 +160,7 @@ def plot_area_balanced(iterations, n):
         elif elem < 0.01 and len(list_iterations) == 4:
             list_iterations.append(i + 1)
 
+    # Finds the number of sample points for certain error values
     for i, elem in enumerate(sample_convergence):
         if elem < 0.05 and len(list_samples) == 0:
             list_samples.append(i + 1)
@@ -159,16 +172,24 @@ def plot_area_balanced(iterations, n):
             list_samples.append(i + 1)
         elif elem < 0.01 and len(list_samples) == 4:
             list_samples.append(i + 1)
+
     list_area = []
+
+    # calculates area for the corresponding iterations and sample point amount to the specific errors chosen
     for i in range(len(list_iterations)):
         samples = random_sampling(list_samples[i])
         list_area.append(calculate_proportion(list_iterations[i], samples)[-1] * 16)
+
+    # plot
     print(list_area)
     plt.plot([0.05, 0.04, 0.03, 0.02, 0.01], list_area)
     plt.show()
 
 
 if __name__ == "__main__":
+    nr_of_iterations = 100
+    nr_of_sample_points = 100000
+
+    plot_area_balanced(nr_of_iterations, nr_of_sample_points)
     # plot_balance_i_s(100, 100000)
-    plot_area_balanced(100, 100000)
     # balance_i_s(100, 10000)
