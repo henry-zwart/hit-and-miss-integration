@@ -120,8 +120,9 @@ def plot_area_balanced(iterations, n):
     plt.show()
 
 
-
-def adaptive_sampling(iterations, n, x_min, x_max, y_min, y_max, threshold, max_depth, cur_depth):
+def adaptive_sampling(
+    iterations, n, x_min, x_max, y_min, y_max, threshold, max_depth, cur_depth
+):
     """
     This is an adaptation to the random sampling Monte carlo technique.
     The function works recursively.
@@ -141,48 +142,95 @@ def adaptive_sampling(iterations, n, x_min, x_max, y_min, y_max, threshold, max_
             -> thus, we want to zoom in on this subgrid,
                we recursively call this function with 4 subgrids of the current grid
     """
-    # makes list of sample points (x_samples[i], y_samples[i]) within current grid space
-    x_samples, y_samples = np.random.uniform(x_min, x_max, n), np.random.uniform(y_min, y_max, n)
-
     # Counts the proportion of sample points that is inside of the Mandelbrot set area
-    total_inside_area = 0
-    for i in range(n):
-        total_inside_area += mandelbrot(x_samples[i], y_samples[i], iterations)
-    hits_proportion = total_inside_area / n
+    v = (x_max - x_min) * (y_max - y_min)
+    total_inside_area = estimate_area(n, iterations, x_min, x_max, y_min, y_max)
+    hits_proportion = total_inside_area / v
 
-    # When max depth is reached the area of the current grid is returned. 
+    # When max depth is reached the area of the current grid is returned.
     # This makes sure the algorithm doesn't go on forever.
     if cur_depth == max_depth:
-        return (x_max - x_min) * (y_max - y_min) * hits_proportion
-    
+        return v * hits_proportion
+
     # Checks balance hits and misses
     # If the balance is disproportionate (mostly hits or mostly misses):
     #         the subgrid is mostly entirely inside or outside the Mandelbrot set area
     #         -> thus, we return the area of the subgrid
     if hits_proportion < threshold or hits_proportion > 1 - threshold:
-        return (x_max - x_min) * (y_max - y_min) * hits_proportion
-    
+        return v * hits_proportion
+
     # recursively calculates area for 4 subgrids
     mid_x, mid_y = (x_min + x_max) / 2, (y_min + y_max) / 2
     area = (
-        adaptive_sampling(iterations, n, x_min, mid_x, y_min, mid_y, threshold, max_depth, cur_depth + 1) +
-        adaptive_sampling(iterations, n, mid_x, x_max, y_min, mid_y, threshold, max_depth, cur_depth + 1) +
-        adaptive_sampling(iterations, n, x_min, mid_x, mid_y, y_max, threshold, max_depth, cur_depth + 1) +
-        adaptive_sampling(iterations, n, mid_x, x_max, mid_y, y_max, threshold, max_depth, cur_depth + 1)
+        adaptive_sampling(
+            iterations,
+            n,
+            x_min,
+            mid_x,
+            y_min,
+            mid_y,
+            threshold,
+            max_depth,
+            cur_depth + 1,
+        )
+        + adaptive_sampling(
+            iterations,
+            n,
+            mid_x,
+            x_max,
+            y_min,
+            mid_y,
+            threshold,
+            max_depth,
+            cur_depth + 1,
+        )
+        + adaptive_sampling(
+            iterations,
+            n,
+            x_min,
+            mid_x,
+            mid_y,
+            y_max,
+            threshold,
+            max_depth,
+            cur_depth + 1,
+        )
+        + adaptive_sampling(
+            iterations,
+            n,
+            mid_x,
+            x_max,
+            mid_y,
+            y_max,
+            threshold,
+            max_depth,
+            cur_depth + 1,
+        )
     )
-    
+
     return area
+
 
 # def stratisfied_sampling((x_min, x_max, y_min, y_max), , threshold=0.1, max_depth=5, depth=0):
 #     return
 
 if __name__ == "__main__":
     iterations = 100
-    n = 1000
+    n = 10000
 
     # plot_area_balanced(nr_of_iterations, nr_of_sample_points)
     # plot_balance_i_s(100, 100000)
     # balance_i_s(100, 10000)
     # print(random_sampling(10))
-    area_estimate = adaptive_sampling(iterations, n, x_min=-2, x_max=2, y_min=-2, y_max=2, threshold=0.1, max_depth=5, cur_depth=0)
+    area_estimate = adaptive_sampling(
+        iterations,
+        n,
+        x_min=-2,
+        x_max=2,
+        y_min=-2,
+        y_max=2,
+        threshold=0.1,
+        max_depth=5,
+        cur_depth=0,
+    )
     print(f"Estimated area of Mandelbrot set: {area_estimate}")
