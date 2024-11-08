@@ -6,11 +6,11 @@ from hit_and_mandelbrot import Sampler, estimate_area, mean_and_ci
 
 def rel_change(i, n_samples, repeats, z=1.96, ddof=1):
     assert i > 0
-    print(f"Testing: i = {i}")
-    a1 = estimate_area(n_samples, i - 1, repeats=repeats, sampler=Sampler.LHS)
+    print(f"\nTesting: i = {i}")
+    a1 = estimate_area(n_samples, i // 2, repeats=repeats, sampler=Sampler.LHS)
     a2 = estimate_area(n_samples, i, repeats=repeats, sampler=Sampler.LHS)
     expected_area, area_ci = mean_and_ci(a2, z=z, ddof=ddof)
-    expected_rc, rc_ci = mean_and_ci((a1 - a2) / a1, z=z, ddof=ddof)
+    expected_rc, rc_ci = mean_and_ci(1 - (a2 / a1), z=z, ddof=ddof)
     return (
         np.array([expected_rc - rc_ci, expected_rc + rc_ci]),
         np.array([expected_area - area_ci, expected_area + area_ci]),
@@ -29,7 +29,6 @@ def print_rc_ci_msg(ci, threshold):
         print(
             f"Confidence interval exceeds threshold: {100 * expected_val:.2f}% + {100 * ci_radius:.2f}% >= {100 * threshold:.2f}%"
         )
-    print()
 
 
 def find_pow2_upper_bound(n_samples, threshold, repeats, z=1.96, ddof=1):
@@ -94,13 +93,11 @@ def minimal_convergence_iteration(n_samples, threshold, repeats, z, ddof):
 
 
 if __name__ == "__main__":
-    n_samples = 1000000
-    threshold = 0.1 / 100
     repeats = 100
-    n_samples = 1000000
-    threshold = 0.1 / 100
+    n_samples = 100000
+    threshold = 1 / 100
     z = 1.96
-    ddof = 1
+    ddof = 0
 
     tested_is, rc_cis, area_cis = minimal_convergence_iteration(
         n_samples, threshold, repeats, z=z, ddof=ddof
@@ -152,4 +149,39 @@ if __name__ == "__main__":
     fig.tight_layout()
     fig.savefig(
         "results/figures/iteration_convergence_lhs.png", dpi=500, bbox_inches="tight"
+    )
+
+    fig, ax = plt.subplots()
+    ax.scatter(
+        tested_is[min_convergent_idx:], area_cis[min_convergent_idx:].mean(axis=1), s=10
+    )
+    ax.vlines(
+        tested_is[min_convergent_idx:],
+        area_cis[min_convergent_idx:, 0],
+        area_cis[min_convergent_idx:, 1],
+    )
+    ax.axhline(min_convergent_area, linestyle="dashed", color="red", linewidth=0.5)
+    ax.text(
+        x=1.01,
+        y=min_convergent_area,
+        s=f"{min_convergent_area:.4f}",
+        va="center",
+        ha="left",
+        color="red",
+        transform=ax.get_yaxis_transform(),
+    )
+    final_area = area_cis.mean(axis=1)[-1]
+    ax.text(
+        x=1.01,
+        y=final_area,
+        s=f"{final_area:.4f}",
+        va="center",
+        ha="left",
+        color="red",
+        transform=ax.get_yaxis_transform(),
+    )
+    fig.tight_layout()
+    fig.savefig(
+        "results/figures/iteration_convergence_within_tolerance.png",
+        bbox_inches="tight",
     )
