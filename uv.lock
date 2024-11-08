@@ -73,7 +73,7 @@ wheels = [
 ]
 
 [[package]]
-name = "hit-and-miss-integration"
+name = "hit-and-mandelbrot"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [

@@ -1,5 +1,5 @@
 [project]
-name = "hit-and-miss-integration"
+name = "hit-and-mandelbrot"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
@@ -19,7 +19,7 @@ dependencies = [
 ]
 
 [project.scripts]
-hit-and-miss = "hit_and_miss_integration:main"
+hit-and-miss = "hit_and_mandelbrot:main"
 
 [build-system]
 requires = ["hatchling"]

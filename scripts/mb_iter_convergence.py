@@ -1,68 +1,19 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from scipy.stats.qmc import LatinHypercube
+
+from hit_and_mandelbrot import estimate_area, mean_and_ci
 
 
-def sample_lhs(xmin, xmax, n):
-    normalised_samples = LatinHypercube(d=1).random(n)
-    denormed_samples = (xmax - xmin) * (normalised_samples - 0.5)
-    return denormed_samples
-
-
-def sample_complex_uniform(n_samples, r_min, r_max, i_min, i_max, method="random"):
-    match method:
-        case "random":
-            real_samples = np.random.uniform(r_min, r_max, n_samples)
-            imag_samples = np.random.uniform(i_min, i_max, n_samples) * 1.0j
-        case "lhs":
-            real_samples = sample_lhs(r_min, r_max, n_samples)
-            imag_samples = sample_lhs(i_min, i_max, n_samples) * 1.0j
-        case _:
-            raise ValueError(f"Unknown sampling method: {method}")
-    return real_samples + imag_samples
-
-
-def estimate_area(
-    n_samples, iterations, x_min=-2, x_max=2, y_min=-2, y_max=2, repeats=1
-):
-    # Calculate area of the sample space
-    if x_min > x_max:
-        x_min, x_max = x_max, x_min
-    if y_min > y_max:
-        y_min, y_max = y_max, y_min
-    v = (x_max - x_min) * (y_max - y_min)
-
-    results = np.zeros(repeats, dtype=np.float64)
-
-    for i in range(repeats):
-        # Run mandlebrot iterations
-        c0 = sample_complex_uniform(n_samples, x_min, x_max, y_min, y_max, method="lhs")
-        z = c0.copy()
-        for _ in range(iterations):
-            still_bounded = np.abs(z) < 2
-            z[still_bounded] = np.pow(z[still_bounded], 2) + c0[still_bounded]
-
-        # Return the estimated area
-        proportion_bounded = (np.abs(z) < 2).sum() / n_samples
-        results[i] = v * proportion_bounded
-
-    return results
-
-
-def mean_and_ci(arr, z=1.96):
-    return (arr.mean(), z * arr.std(ddof=1) / np.sqrt(arr.shape[0]))
-
-
-def rel_change(i, n_samples, repeats, z=1.96):
+def rel_change(i, n_samples, repeats, z=1.96, ddof=1):
     assert i > 0
     a1 = estimate_area(n_samples, i - 1, repeats=repeats)
     a2 = estimate_area(n_samples, i, repeats=repeats)
-    expected_area, area_ci = mean_and_ci(a2)
-    expected_rc, rc_ci = mean_and_ci((a1 - a2) / a1)
+    expected_area, area_ci = mean_and_ci(a2, z=z, ddof=ddof)
+    expected_rc, rc_ci = mean_and_ci((a1 - a2) / a1, z=z, ddof=ddof)
     return expected_rc, rc_ci, expected_area, area_ci
 
 
-def find_pow2_upper_bound(n_samples, threshold, repeats):
+def find_pow2_upper_bound(n_samples, threshold, repeats, z=1.96, ddof=1):
     tested_is = []
     expected_rcs = []
     rc_cis = []
@@ -70,7 +21,9 @@ def find_pow2_upper_bound(n_samples, threshold, repeats):
     area_cis = []
 
     i = 1
-    rc_exp, rc_ci, area_exp, area_ci = rel_change(2**i, n_samples, repeats)
+    rc_exp, rc_ci, area_exp, area_ci = rel_change(
+        2**i, n_samples, repeats, z=z, ddof=ddof
+    )
     tested_is.append(2**i)
     expected_rcs.append(rc_exp)
     rc_cis.append(rc_ci)
@@ -82,7 +35,9 @@ def find_pow2_upper_bound(n_samples, threshold, repeats):
             f"Upper confidence bound exceeds threshold: {100*(rc_exp + rc_ci):.2f}% > {100*threshold}%"
         )
         i += 1
-        rc_exp, rc_ci, area_exp, area_ci = rel_change(2**i, n_samples, repeats)
+        rc_exp, rc_ci, area_exp, area_ci = rel_change(
+            2**i, n_samples, repeats, z=z, ddof=ddof
+        )
         tested_is.append(2**i)
         expected_rcs.append(rc_exp)
         rc_cis.append(rc_ci)
@@ -97,9 +52,9 @@ def find_pow2_upper_bound(n_samples, threshold, repeats):
     return tested_is, expected_rcs, rc_cis, expected_areas, area_cis
 
 
-def minimal_convergence_iteration(n_samples, threshold, repeats):
+def minimal_convergence_iteration(n_samples, threshold, repeats, z, ddof):
     tested_is, expected_rcs, rc_cis, expected_areas, area_cis = find_pow2_upper_bound(
-        n_samples, threshold, repeats
+        n_samples, threshold, repeats, z, ddof
     )
 
     # Run binary search to find first i which is convergent
@@ -107,7 +62,9 @@ def minimal_convergence_iteration(n_samples, threshold, repeats):
     while left <= right:
         mid = (left + right) // 2
         print(f"Testing: {mid}")
-        rc_exp, rc_ci, area_exp, area_ci = rel_change(mid, n_samples, repeats)
+        rc_exp, rc_ci, area_exp, area_ci = rel_change(
+            mid, n_samples, repeats, z=z, ddof=ddof
+        )
         print(f"{mid}: {rc_exp*100:.2f}% +- {100*rc_ci:.2f}")
         tested_is.append(mid)
         expected_rcs.append(rc_exp)
@@ -130,12 +87,19 @@ def minimal_convergence_iteration(n_samples, threshold, repeats):
             print("left >= right, quitting.")
             break
 
+    sorted_order = np.argsort(tested_is)
+    tested_is = np.array(tested_is)[sorted_order]
+    expected_rcs = np.array(expected_rcs)[sorted_order]
+    rc_cis = np.array(rc_cis)[sorted_order]
+    expected_areas = np.array(expected_areas)[sorted_order]
+    area_cis = np.array(area_cis)[sorted_order]
+
     return (
-        np.array(tested_is),
-        np.array(expected_rcs),
-        np.array(rc_cis),
-        np.array(expected_areas),
-        np.array(area_cis),
+        tested_is,
+        expected_rcs,
+        rc_cis,
+        expected_areas,
+        area_cis,
     )
 
 
@@ -143,17 +107,17 @@ if __name__ == "__main__":
     n_samples = 1000000
     threshold = 0.1 / 100
     repeats = 100
+    n_samples = 100000
+    threshold = 5 / 100
+    z = 1.96
+    ddof = 1
+
     tested_is, expected_rcs, rc_cis, expected_area, area_cis = (
-        minimal_convergence_iteration(n_samples, threshold, repeats)
+        minimal_convergence_iteration(n_samples, threshold, repeats, z=z, ddof=ddof)
     )
 
-    sorted_order = np.argsort(tested_is)
-    min_convergent_i = tested_is[sorted_order][
-        np.argmax(expected_rcs[sorted_order] + rc_cis[sorted_order] < threshold)
-    ]
-    min_convergent_area = expected_area[sorted_order][
-        np.argmax(expected_rcs[sorted_order] + rc_cis[sorted_order] < threshold)
-    ]
+    min_convergent_i = tested_is[np.argmax(expected_rcs + rc_cis < threshold)]
+    min_convergent_area = expected_area[np.argmax(expected_rcs + rc_cis < threshold)]
 
     fig, axes = plt.subplots(2, sharex=True)
 
@@ -197,4 +161,6 @@ if __name__ == "__main__":
 
     # Prepare and save figure
     fig.tight_layout()
-    fig.savefig("iteration_convergence_lhs.png", dpi=500, bbox_inches="tight")
+    fig.savefig(
+        "results/figures/iteration_convergence_lhs.png", dpi=500, bbox_inches="tight"
+    )
