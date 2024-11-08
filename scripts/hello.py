@@ -42,7 +42,7 @@ def balance_i_s(iterations, n):
     Calculating error for many different amount of sample points, (mean taken over 5).
     Calculating error for many different amount of iterations, (mean taken over 5).
     """
-    nr_of_runs = 5
+    nr_of_runs = 15
 
     expected_area, area_ci = calculate_area_2(iterations, n, nr_of_runs, sampler="lhs")
 
@@ -125,6 +125,6 @@ if __name__ == "__main__":
     nr_of_iterations = 100
     nr_of_sample_points = 100000
 
-    plot_area_balanced(nr_of_iterations, nr_of_sample_points)
-    # plot_balance_i_s(100, 100000)
+    # plot_area_balanced(nr_of_iterations, nr_of_sample_points)
+    plot_balance_i_s(100, 100000)
     # balance_i_s(100, 10000)
