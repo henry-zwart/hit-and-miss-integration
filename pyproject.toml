@@ -1,5 +1,5 @@
 [project]
-name = "hit-and-miss-integration"
+name = "hit-and-mandelbrot"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
@@ -11,6 +11,7 @@ authors = [
 
 requires-python = ">=3.12"
 dependencies = [
+    "bpython>=0.24",
     "matplotlib>=3.9.2",
     "numpy>=2.1.2",
     "pillow>=11.0.0",
@@ -19,7 +20,7 @@ dependencies = [
 ]
 
 [project.scripts]
-hit-and-miss = "hit_and_miss_integration:main"
+hit-and-miss = "hit_and_mandelbrot:main"
 
 [build-system]
 requires = ["hatchling"]
