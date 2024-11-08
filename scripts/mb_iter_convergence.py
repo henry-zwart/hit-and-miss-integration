@@ -1,14 +1,14 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-from hit_and_mandelbrot import estimate_area, mean_and_ci
+from hit_and_mandelbrot import Sampler, estimate_area, mean_and_ci
 
 
 def rel_change(i, n_samples, repeats, z=1.96, ddof=1):
     assert i > 0
     print(f"Testing: i = {i}")
-    a1 = estimate_area(n_samples, i - 1, repeats=repeats)
-    a2 = estimate_area(n_samples, i, repeats=repeats)
+    a1 = estimate_area(n_samples, i - 1, repeats=repeats, sampler=Sampler.LHS)
+    a2 = estimate_area(n_samples, i, repeats=repeats, sampler=Sampler.LHS)
     expected_area, area_ci = mean_and_ci(a2, z=z, ddof=ddof)
     expected_rc, rc_ci = mean_and_ci((a1 - a2) / a1, z=z, ddof=ddof)
     return (
@@ -27,7 +27,7 @@ def print_rc_ci_msg(ci, threshold):
         )
     else:
         print(
-            f"Threshold within confidence interval: {100 * expected_val:.2f}% + {100 * ci_radius:.2f}% >= {100 * threshold:.2f}%"
+            f"Confidence interval exceeds threshold: {100 * expected_val:.2f}% + {100 * ci_radius:.2f}% >= {100 * threshold:.2f}%"
         )
     print()
 
@@ -97,8 +97,8 @@ if __name__ == "__main__":
     n_samples = 1000000
     threshold = 0.1 / 100
     repeats = 100
-    n_samples = 100000
-    threshold = 5 / 100
+    n_samples = 1000000
+    threshold = 0.1 / 100
     z = 1.96
     ddof = 1
 
