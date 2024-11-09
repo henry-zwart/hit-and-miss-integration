@@ -20,7 +20,11 @@ next steps:
 import matplotlib.pyplot as plt
 import numpy as np
 
-from hit_and_mandelbrot.mandelbrot import estimate_area, estimate_area_per_sample
+from hit_and_mandelbrot.mandelbrot import (
+    adaptive_sampling,
+    estimate_area,
+    estimate_area_per_sample,
+)
 
 
 def calculate_area_2(iterations, n_samples, repeats, sampler):
@@ -120,62 +124,6 @@ def plot_area_balanced(iterations, n):
     plt.show()
 
 
-def adaptive_sampling(
-    iterations, n, x_min, x_max, y_min, y_max, threshold, max_depth, cur_depth
-):
-    """
-    This is an adaptation to the random sampling Monte carlo technique.
-    The function works recursively.
-
-    Algorithm:
-    1. It starts with a (sub)grid
-    2. It takes n random sampling points within the subgrid
-    3. It calculates the balance of hits and misses
-    4. We check if the max depth is reached of our recursion,
-        if so -> area subgrid is returned
-        if not -> step 5
-    5. - If the balance is disproportionate:
-            the subgrid is mostly entirely inside or outside the Mandelbrot set area
-            -> thus, we return the area of the subgrid
-       - If the balance is proportionate:
-            the subgrid includes an edge of the Mandelbrot set area (most probably)
-            -> thus, we want to zoom in on this subgrid,
-               we recursively call this function with 4 subgrids of the current grid
-    """
-    # Counts the proportion of sample points that is inside of the Mandelbrot set area
-    v = (x_max - x_min) * (y_max - y_min)
-    total_inside_area = estimate_area(n, iterations, x_min, x_max, y_min, y_max)
-    hits_proportion = total_inside_area / v
-
-    # When max depth is reached the area of the current grid is returned.
-    # This makes sure the algorithm doesn't go on forever.
-    if cur_depth == max_depth:
-        return v * hits_proportion
-
-    # Checks balance hits and misses
-    # If the balance is disproportionate (mostly hits or mostly misses):
-    #         the subgrid is mostly entirely inside or outside the Mandelbrot set area
-    #         -> thus, we return the area of the subgrid
-    if hits_proportion < threshold or hits_proportion > 1 - threshold:
-        return v * hits_proportion
-
-    # recursively calculates area for 4 subgrids
-    mid_x, mid_y = (x_min + x_max) / 2, (y_min + y_max) / 2
-    area = 0
-    quadrants = (
-        ((x_min, mid_x), (y_min, mid_y)),  # Bottom left
-        ((mid_x, x_max), (y_min, mid_y)),  # Bottom right
-        ((x_min, mid_x), (mid_y, y_max)),  # Top left
-        ((mid_x, x_max), (mid_y, y_max)),  # Top right
-    )
-    for (x1, x2), (y1, y2) in quadrants:
-        area += adaptive_sampling(
-            iterations, n, x1, x2, y1, y2, threshold, max_depth, cur_depth + 1
-        )
-
-    return area
-
-
 if __name__ == "__main__":
     iterations = 100
     n = 10000
@@ -185,8 +133,8 @@ if __name__ == "__main__":
     # balance_i_s(100, 10000)
     # print(random_sampling(10))
     area_estimate = adaptive_sampling(
-        iterations,
         n,
+        iterations,
         x_min=-2,
         x_max=2,
         y_min=-2,
