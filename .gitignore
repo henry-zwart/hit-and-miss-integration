@@ -198,3 +198,4 @@ pyrightconfig.json
 *.npy
 *.pkl
 *.json
+.targets/*

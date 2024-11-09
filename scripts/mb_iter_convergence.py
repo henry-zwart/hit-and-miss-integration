@@ -119,8 +119,8 @@ if __name__ == "__main__":
     RESULTS_ROOT.mkdir(parents=True, exist_ok=True)
 
     repeats = 100
-    n_samples = 100000
-    threshold = 1 / 100
+    n_samples = 10000
+    threshold = 2 / 100
     z = 1.96
     ddof = 0
 

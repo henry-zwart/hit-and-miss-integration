@@ -68,9 +68,7 @@ def plot_true_area_convergence():
 
     # Prepare and save figure
     fig.tight_layout()
-    fig.savefig(
-        FIGURES_ROOT / "iteration_convergence_lhs.png", dpi=500, bbox_inches="tight"
-    )
+    fig.savefig(FIGURES_ROOT / "true_area_conv.png", dpi=500, bbox_inches="tight")
 
     fig, ax = plt.subplots()
     ax.scatter(
@@ -105,7 +103,7 @@ def plot_true_area_convergence():
     )
     fig.tight_layout()
     fig.savefig(
-        FIGURES_ROOT / "iteration_convergence_within_tolerance.png",
+        FIGURES_ROOT / "true_area_conv_closeup.png",
         dpi=500,
         bbox_inches="tight",
     )
