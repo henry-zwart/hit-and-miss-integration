@@ -19,12 +19,43 @@ def calculate_hits(
     c: np.ndarray,
     iterations: int,
 ):
-    z = c.copy()
-    for _ in range(iterations + 1):  # We want to consider i=x as (0, ..., x)
-        still_bounded = np.abs(z) < 2
-        z[still_bounded] = np.pow(z[still_bounded], 2) + c[still_bounded]
+    """
+    For each iteration and each sample, determines whether the sample is a hit.
 
-    return np.abs(z) < 2
+    On each iteration:
+        Check if any previously-bounded samples are outside threshold.
+        For each such sample, set the entry in "bounded" to False, and set the entry in
+        "unbounded_at" to the current iteration.
+
+        For all remaining points in "bounded", iterate the mandelbrot function again.
+
+    At the end:
+        For each iteration, record which samples had exceeded the threshold.
+    """
+    z = c.copy()
+
+    # Keep a record of the samples which are still within bounds
+    bounded = np.abs(c) <= 2
+
+    # Record the iteration at which each point exceeds threshold
+    unbounded_at = np.full(c.shape, np.inf)
+    unbounded_at[~bounded] = 0
+
+    for i in range(1, iterations + 1):  # We want to consider i=x as (0, ..., x)
+        # Iterate on the samples which remain bounded
+        z[bounded] = z[bounded] ** 2 + c[bounded]
+
+        # Identify the samples which were previously bounded, and now exceed threshold
+        just_unbounded = bounded & (np.abs(z) > 2)
+
+        # Record these samples as unbounded
+        bounded[just_unbounded] = False
+        unbounded_at[just_unbounded] = i
+
+    # For each iteration, record the hits. i.e. the samples which were still bound
+    hits = unbounded_at > np.arange(iterations + 1)[:, None, None]
+
+    return hits
 
 
 def estimate_area_per_sample(
@@ -43,7 +74,7 @@ def estimate_area_per_sample(
     c = sample_complex_uniform(
         n_samples, repeats, x_min, x_max, y_min, y_max, method=sampler
     )
-    hits = calculate_hits(c, iterations)
+    hits = calculate_hits(c, iterations)[-1]
 
     # For each repeat, get prop. hits in (0, ..., s) samples, for each s
     cumulative_prop_hits = hits.cumsum(axis=0) / np.arange(1, c.shape[0] + 1)[:, None]
@@ -76,7 +107,7 @@ def estimate_area(
     c = sample_complex_uniform(
         n_samples, repeats, x_min, x_max, y_min, y_max, method=sampler
     )
-    hits = calculate_hits(c, iterations)
+    hits = calculate_hits(c, iterations)[-1]
 
     # Calculate area as the sample space volume multiplied by proportion of hits
     prop_hits = hits.sum(axis=0) / n_samples
