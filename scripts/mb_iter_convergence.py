@@ -1,14 +1,35 @@
-import matplotlib.pyplot as plt
+import json
+from pathlib import Path
+
 import numpy as np
 
 from hit_and_mandelbrot import Sampler, estimate_area, mean_and_ci
 
 
-def rel_change(i, n_samples, repeats, z=1.96, ddof=1):
+def rel_change(i, n_samples, repeats, cache, z=1.96, ddof=1):
     assert i > 0
-    print(f"\nTesting: i = {i}")
-    a1 = estimate_area(n_samples, i // 2, repeats=repeats, sampler=Sampler.LHS)
-    a2 = estimate_area(n_samples, i, repeats=repeats, sampler=Sampler.LHS)
+    print("\n")
+    print("=" * 20)
+    print(f"Testing: i = {i}")
+
+    # Check if we already have (i // 2) cached
+    if (i // 2) in cache:
+        print(f"Reusing cached result for: i//2 = {i // 2}.")
+        a1 = cache[i // 2]
+    else:
+        a1 = estimate_area(n_samples, i // 2, repeats=repeats, sampler=Sampler.LHS)
+        cache[i // 2] = a1.copy()
+
+    # We shouldn't have i in cache (since we shouldn't be repeating).
+    # But we'll use it if its there :)
+    if i in cache:
+        print(f"Warning: {i} has already been tested!")
+        a2 = cache[i]
+    else:
+        a2 = estimate_area(n_samples, i, repeats=repeats, sampler=Sampler.LHS)
+        cache[i] = a2.copy()
+    print()
+
     expected_area, area_ci = mean_and_ci(a2, z=z, ddof=ddof)
     expected_rc, rc_ci = mean_and_ci(1 - (a2 / a1), z=z, ddof=ddof)
     return (
@@ -31,20 +52,20 @@ def print_rc_ci_msg(ci, threshold):
         )
 
 
-def find_pow2_upper_bound(n_samples, threshold, repeats, z=1.96, ddof=1):
+def find_pow2_upper_bound(n_samples, threshold, repeats, cache, z=1.96, ddof=1):
     tested_is = []
     rc_cis = []
     area_cis = []
 
     i = 1
-    rc_ci, area_ci = rel_change(2**i, n_samples, repeats, z=z, ddof=ddof)
+    rc_ci, area_ci = rel_change(2**i, n_samples, repeats, cache, z=z, ddof=ddof)
     tested_is.append(2**i)
     rc_cis.append(rc_ci)
     area_cis.append(area_ci)
     while rc_ci[1] > threshold:
         print_rc_ci_msg(rc_ci, threshold)
         i += 1
-        rc_ci, area_ci = rel_change(2**i, n_samples, repeats, z=z, ddof=ddof)
+        rc_ci, area_ci = rel_change(2**i, n_samples, repeats, cache, z=z, ddof=ddof)
         tested_is.append(2**i)
         rc_cis.append(rc_ci)
         area_cis.append(area_ci)
@@ -55,15 +76,16 @@ def find_pow2_upper_bound(n_samples, threshold, repeats, z=1.96, ddof=1):
 
 
 def minimal_convergence_iteration(n_samples, threshold, repeats, z, ddof):
+    cache = {}
     tested_is, rc_cis, area_cis = find_pow2_upper_bound(
-        n_samples, threshold, repeats, z, ddof
+        n_samples, threshold, repeats, cache, z, ddof
     )
 
     # Run binary search to find first i which is convergent
     left, right = tested_is[-2:]
     while left <= right:
         mid = (left + right) // 2
-        rc_ci, area_ci = rel_change(mid, n_samples, repeats, z=z, ddof=ddof)
+        rc_ci, area_ci = rel_change(mid, n_samples, repeats, cache, z=z, ddof=ddof)
         print_rc_ci_msg(rc_ci, threshold)
 
         tested_is.append(mid)
@@ -93,6 +115,9 @@ def minimal_convergence_iteration(n_samples, threshold, repeats, z, ddof):
 
 
 if __name__ == "__main__":
+    RESULTS_ROOT = Path("results") / "data" / "true_area_convergence"
+    RESULTS_ROOT.mkdir(parents=True, exist_ok=True)
+
     repeats = 100
     n_samples = 100000
     threshold = 1 / 100
@@ -103,85 +128,15 @@ if __name__ == "__main__":
         n_samples, threshold, repeats, z=z, ddof=ddof
     )
 
-    min_convergent_idx = np.argmax(rc_cis[:, 1] < threshold)
-    min_convergent_i = tested_is[min_convergent_idx]
-    min_convergent_area = area_cis[min_convergent_idx].mean()
+    np.save(RESULTS_ROOT / "iterations.npy", tested_is)
+    np.save(RESULTS_ROOT / "relchange_cis.npy", rc_cis)
+    np.save(RESULTS_ROOT / "area_cis.npy", area_cis)
 
-    fig, axes = plt.subplots(2, sharex=True)
-
-    # Scatterplot of the relative change in estimated area, with confidence intervals
-    axes[0].scatter(tested_is, 100 * rc_cis.mean(axis=1), s=10, marker="x")
-    axes[0].vlines(tested_is, 100 * rc_cis[:, 0], 100 * rc_cis[:, 1])
-
-    # Horizontal line at threshold, vertical red line at first i which achieves convergence
-    axes[0].axhline(y=100 * threshold, color="grey", linewidth=0.5)
-    axes[0].axvline(min_convergent_i, linestyle="dashed", color="red", linewidth=0.5)
-
-    # Make plot pretty
-    axes[0].set_xlim(1, None)
-    axes[0].set_yscale("log")
-    axes[0].set_ylabel("Relative change")
-    axes[0].set_title("Percentage relative change from A(i-1) -> A(i)")
-
-    # Scatterplot of the estimated area for each of the tested i's, with confidence intervals
-    axes[1].scatter(tested_is, area_cis.mean(axis=1), s=10)
-    axes[1].vlines(tested_is, area_cis[:, 0], area_cis[:, 1])
-
-    # Horizontal red line at minimum convergent area
-    axes[1].axhline(min_convergent_area, linestyle="dashed", color="red", linewidth=0.5)
-    axes[1].text(
-        x=1.01,
-        y=min_convergent_area,
-        s=f"{min_convergent_area:.4f}",
-        va="center",
-        ha="left",
-        color="red",
-        transform=axes[1].get_yaxis_transform(),
-    )
-
-    # Make plot pretty
-    axes[1].set_ylabel("Estimated area")
-    axes[1].set_ylim(0, None)
-    axes[1].set_xlabel("Iterations")
-    axes[1].set_title("Convergence of A(i)")
-
-    # Prepare and save figure
-    fig.tight_layout()
-    fig.savefig(
-        "results/figures/iteration_convergence_lhs.png", dpi=500, bbox_inches="tight"
-    )
-
-    fig, ax = plt.subplots()
-    ax.scatter(
-        tested_is[min_convergent_idx:], area_cis[min_convergent_idx:].mean(axis=1), s=10
-    )
-    ax.vlines(
-        tested_is[min_convergent_idx:],
-        area_cis[min_convergent_idx:, 0],
-        area_cis[min_convergent_idx:, 1],
-    )
-    ax.axhline(min_convergent_area, linestyle="dashed", color="red", linewidth=0.5)
-    ax.text(
-        x=1.01,
-        y=min_convergent_area,
-        s=f"{min_convergent_area:.4f}",
-        va="center",
-        ha="left",
-        color="red",
-        transform=ax.get_yaxis_transform(),
-    )
-    final_area = area_cis.mean(axis=1)[-1]
-    ax.text(
-        x=1.01,
-        y=final_area,
-        s=f"{final_area:.4f}",
-        va="center",
-        ha="left",
-        color="red",
-        transform=ax.get_yaxis_transform(),
-    )
-    fig.tight_layout()
-    fig.savefig(
-        "results/figures/iteration_convergence_within_tolerance.png",
-        bbox_inches="tight",
-    )
+    metadata = {
+        "convergence_threshold": threshold,
+        "z": z,
+        "repeats": repeats,
+        "n_samples": n_samples,
+    }
+    with (RESULTS_ROOT / "metadata.json").open("w") as f:
+        json.dump(metadata, f)

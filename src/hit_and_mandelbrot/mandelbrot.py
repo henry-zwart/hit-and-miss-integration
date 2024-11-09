@@ -1,3 +1,6 @@
+import time
+
+import numba
 import numpy as np
 
 from .sampling import Sampler, sample_complex_uniform
@@ -15,7 +18,7 @@ def _prepare_params(
     return (x_min, x_max, y_min, y_max, v)
 
 
-def calculate_hits(
+def calculate_hits_slow(
     c: np.ndarray,
     iterations: int,
 ):
@@ -56,6 +59,69 @@ def calculate_hits(
     hits = unbounded_at > np.arange(iterations + 1)[:, None, None]
 
     return hits
+
+
+@numba.njit
+def calculate_hits(c: np.ndarray, iterations: int):
+    """
+    For each iteration and each sample, determines whether the sample is a hit.
+    """
+    z = c.copy()
+
+    # Keep a boolean record of the samples which are still within bounds
+    bounded = np.abs(c) <= 2
+
+    # Record the iteration at which each point exceeds threshold
+    unbounded_at = np.full(c.shape, iterations + 1, dtype=np.int64)
+
+    # Initialise the record for samples which are unbounded at iteration 0
+    for s in range(c.shape[0]):
+        for r in range(c.shape[1]):
+            if not bounded[s, r]:
+                unbounded_at[s, r] = 0
+
+    # For each iteration,
+    for i in range(1, iterations + 1):
+        # ... for each sample,
+        for s in range(c.shape[0]):
+            # ... in each repeat of the estimation:
+            for r in range(c.shape[1]):
+                # If the sample was previously within the bounds.
+                # Note, this avoids extra computation on already-excluded samples.
+                if bounded[s, r]:
+                    # Iterate on the sample
+                    z[s, r] = z[s, r] ** 2 + c[s, r]
+                    # If it is now outside the bounds, record that.
+                    if np.abs(z[s, r]) > 2:
+                        bounded[s, r] = False
+                        unbounded_at[s, r] = i
+
+    # Prepare boolean array to say which samples were included, and at which iterations
+    hits = np.zeros((iterations + 1, c.shape[0], c.shape[1]), dtype=np.bool)
+    for i in range(iterations + 1):
+        for s in range(c.shape[0]):
+            for r in range(c.shape[1]):
+                hits[i, s, r] = unbounded_at[s, r] > i
+
+    return hits
+
+
+@numba.njit
+def calculate_final_hits(c: np.ndarray, iterations: int):
+    """
+    Calculate hits without storing intermediary information
+    """
+    z = c.copy()
+    bounded = np.abs(c) <= 2
+    for _ in range(1, iterations + 1):
+        for s in range(c.shape[0]):
+            for r in range(c.shape[1]):
+                if bounded[s, r]:
+                    z[s, r] = z[s, r] ** 2 + c[s, r]
+                    if np.abs(z[s, r]) > 2:
+                        bounded[s, r] = False
+
+    return (np.abs(z) <= 2).sum(axis=0)
 
 
 def estimate_area_per_sample(
@@ -104,14 +170,28 @@ def estimate_area(
     sampler=Sampler.RANDOM,
 ):
     x_min, x_max, y_min, y_max, v = _prepare_params(x_min, x_max, y_min, y_max)
+    print("Running Mandelbrot area estimation:")
+    print(
+        f"\tInterval (xmin, xmax)x(ymin, ymax): ({x_min:.2f}, {x_max:.2f})x({y_min:.2f}, {y_max:.2f})"
+    )
+    print(f"\tIterations: {iterations}")
+    print(f"\tSample size: {n_samples}")
+    print(f"\tRepeats: {repeats}")
+    print(f"\tSampling method: {str(sampler)}")
+
+    t0 = time.time()
     c = sample_complex_uniform(
         n_samples, repeats, x_min, x_max, y_min, y_max, method=sampler
     )
-    hits = calculate_hits(c, iterations)[-1]
+    hits = calculate_final_hits(c, iterations)
 
     # Calculate area as the sample space volume multiplied by proportion of hits
-    prop_hits = hits.sum(axis=0) / n_samples
+    prop_hits = hits / n_samples
     area_estimates = prop_hits * v
+    t1 = time.time()
+
+    t = t1 - t0
+    print(f"Completed in {t:.2f}s")
 
     if repeats == 1:
         area_estimates = area_estimates[0]
