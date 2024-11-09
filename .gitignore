@@ -197,3 +197,4 @@ pyrightconfig.json
 *.pdf
 *.npy
 *.pkl
+*.json
