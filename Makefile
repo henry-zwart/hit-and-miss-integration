@@ -5,10 +5,13 @@ SHAPE_CONVERGENCE_DATA =  $(patsubst %, data/shape_convergence/%, $(SHAPE_CONVER
 
 LIMIT_CONVERGENCE_FIGURE_NAMES = limit_error.png limit_area.png
 JOINT_CONVERGENCE_DATA_NAMES = metadata.json expected_area.npy confidence_intervals.npy
-LIMIT_CONVERGENCE_FIGURES =  $(patsubst %, figures/limit_convergence/%, $(LIMIT_CONVERGENCE_FIGURE_NAMES))
+LIMIT_CONVERGENCE_FIGURES = $(patsubst %, figures/limit_convergence/%, $(LIMIT_CONVERGENCE_FIGURE_NAMES))
 JOINT_CONVERGENCE_DATA = $(patsubst %, data/joint_convergence/%, $(JOINT_CONVERGENCE_DATA_NAMES))
 
-FIGURES = $(SHAPE_CONVERGENCE_FIGURES) $(LIMIT_CONVERGENCE_FIGURES)
+JOINT_ERROR_FIGURE_NAMES = equiv_error_areas.png error_contour.png error_hist.png
+JOINT_ERROR_FIGURES = $(patsubst %, figures/joint_error/%, $(JOINT_ERROR_FIGURE_NAMES))
+
+FIGURES = $(SHAPE_CONVERGENCE_FIGURES) $(LIMIT_CONVERGENCE_FIGURES) $(JOINT_ERROR_FIGURES)
 
 # all: $(SHAPE_CONVERGENCE_DATA)
 all: $(FIGURES)
@@ -19,6 +22,9 @@ $(SHAPE_CONVERGENCE_FIGURES) &: scripts/plot_shape_convergence.py $(SHAPE_CONVER
 	uv run $<
 
 $(LIMIT_CONVERGENCE_FIGURES) &: scripts/plot_limit_convergence.py $(JOINT_CONVERGENCE_DATA)
+	uv run $<
+
+$(JOINT_ERROR_FIGURES) &: scripts/plot_joint_error.py $(JOINT_CONVERGENCE_DATA)
 	uv run $<
 
 $(FIGURES_DIR):

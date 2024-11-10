@@ -3,8 +3,25 @@ from pathlib import Path
 
 import numpy as np
 
-from hit_and_mandelbrot.mandelbrot import estimate_area_per_sample
+from hit_and_mandelbrot.mandelbrot import estimate_area, estimate_area_per_sample
 from hit_and_mandelbrot.sampling import Sampler
+from hit_and_mandelbrot.statistics import mean_and_ci
+
+
+def measure_equiv_errors(area, ε_min, ε_max, steps, repeats, z, ddof):
+    # Get error due to finite iterations, and error due to finite samples
+    ε_i = area[..., -1] - area[-1, -1]
+    ε_s = area[-1, ...] - area[-1, -1]
+    ε_measure = np.linspace(ε_min, ε_max, steps)
+    corresponding_i = np.argmax(ε_i < ε_measure[:, None], axis=1)
+    corresponding_s = np.argmax(ε_s < ε_measure[:, None], axis=1)
+    corresponding_areas = []
+    for i, s in zip(corresponding_i, corresponding_s):
+        a = estimate_area(s, i, repeats=repeats, quiet=True)
+        expected_area, _ = mean_and_ci(a, z, ddof)
+        corresponding_areas.append(expected_area)
+    return (ε_measure, corresponding_areas)
+
 
 if __name__ == "__main__":
     RESULTS_ROOT = Path("data") / "joint_convergence"
@@ -16,6 +33,10 @@ if __name__ == "__main__":
     sampler = Sampler.RANDOM
     ddof = 0
     z = 1.96
+
+    equiv_ε_min = 0.0001
+    equiv_ε_max = 0.003
+    equiv_ε_steps = 100
 
     expected_area, confidence_interval = estimate_area_per_sample(
         n_samples,
@@ -29,6 +50,13 @@ if __name__ == "__main__":
     np.save(RESULTS_ROOT / "expected_area.npy", expected_area)
     np.save(RESULTS_ROOT / "confidence_intervals.npy", confidence_interval)
 
+    ε_measure, ε_equiv_areas = measure_equiv_errors(
+        expected_area, equiv_ε_min, equiv_ε_max, equiv_ε_steps, repeats, z, ddof
+    )
+
+    np.save(RESULTS_ROOT / "equiv_errors_measured.npy", ε_measure)
+    np.save(RESULTS_ROOT / "equiv_error_areas.npy", ε_equiv_areas)
+
     metadata = {
         "max_samples": n_samples,
         "max_iterations": iterations,
@@ -36,6 +64,9 @@ if __name__ == "__main__":
         "sampling_method": str(sampler),
         "ddof": ddof,
         "z": z,
+        "equiv_err_min": equiv_ε_min,
+        "equiv_err_max": equiv_ε_max,
+        "equiv_err_steps": equiv_ε_steps,
     }
 
     with (RESULTS_ROOT / "metadata.json").open("w") as f:
