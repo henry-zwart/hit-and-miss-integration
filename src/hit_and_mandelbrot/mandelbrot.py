@@ -107,6 +107,20 @@ def calculate_hits(c: np.ndarray, iterations: int):
 
 
 @numba.njit
+def in_mandelbrot(c: np.array, iterations: int):
+    """Determine whether an array of values are in Mandelbrot after given iterations."""
+    z = c.copy()
+    bounded = np.abs(c) <= 2
+    for _ in range(1, iterations + 1):
+        for s in range(c.shape[0]):
+            if bounded[s]:
+                z[s] = z[s] ** 2 + c[s]
+                if np.abs(z[s]) > 2:
+                    bounded[s] = False
+    return bounded
+
+
+@numba.njit
 def calculate_final_hits(c: np.ndarray, iterations: int):
     """
     Calculate hits without storing intermediary information
