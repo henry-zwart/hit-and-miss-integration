@@ -5,6 +5,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 if __name__ == "__main__":
+    MIN_ITERATIONS = 20
+    MIN_SAMPLES = 10_000
+
     RESULTS_ROOT = Path("data") / "joint_convergence"
     FIGURES_ROOT = Path("figures") / "limit_convergence"
     FIGURES_ROOT.mkdir(parents=True, exist_ok=True)
@@ -14,9 +17,6 @@ if __name__ == "__main__":
 
     expected_area = np.load(RESULTS_ROOT / "expected_area.npy")
     confidence_interval = np.load(RESULTS_ROOT / "confidence_intervals.npy")
-
-    MIN_ITERATIONS = 20
-    MIN_SAMPLES = 10_000
 
     fig, ax = plt.subplots(2)
     area_i_lower = expected_area[..., -1] - confidence_interval[..., -1]
