@@ -168,16 +168,18 @@ def estimate_area(
     y_max=2,
     repeats=1,
     sampler=Sampler.RANDOM,
+    quiet=False,
 ):
     x_min, x_max, y_min, y_max, v = _prepare_params(x_min, x_max, y_min, y_max)
-    print("Running Mandelbrot area estimation:")
-    print(
-        f"\tInterval (xmin, xmax)x(ymin, ymax): ({x_min:.2f}, {x_max:.2f})x({y_min:.2f}, {y_max:.2f})"
-    )
-    print(f"\tIterations: {iterations}")
-    print(f"\tSample size: {n_samples}")
-    print(f"\tRepeats: {repeats}")
-    print(f"\tSampling method: {str(sampler)}")
+    if not quiet:
+        print("Running Mandelbrot area estimation:")
+        print(
+            f"\tInterval (xmin, xmax)x(ymin, ymax): ({x_min:.2f}, {x_max:.2f})x({y_min:.2f}, {y_max:.2f})"
+        )
+        print(f"\tIterations: {iterations}")
+        print(f"\tSample size: {n_samples}")
+        print(f"\tRepeats: {repeats}")
+        print(f"\tSampling method: {str(sampler)}")
 
     t0 = time.time()
     c = sample_complex_uniform(
@@ -191,7 +193,8 @@ def estimate_area(
     t1 = time.time()
 
     t = t1 - t0
-    print(f"Completed in {t:.2f}s")
+    if not quiet:
+        print(f"Completed in {t:.2f}s")
 
     if repeats == 1:
         area_estimates = area_estimates[0]
