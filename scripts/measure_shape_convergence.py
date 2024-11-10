@@ -115,7 +115,7 @@ def minimal_convergence_iteration(n_samples, threshold, repeats, z, ddof):
 
 
 if __name__ == "__main__":
-    RESULTS_ROOT = Path("results") / "data" / "true_area_convergence"
+    RESULTS_ROOT = Path("data") / "shape_convergence"
     RESULTS_ROOT.mkdir(parents=True, exist_ok=True)
 
     repeats = 100

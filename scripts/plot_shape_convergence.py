@@ -5,14 +5,15 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def plot_true_area_convergence():
+def plot_shape_convergence():
     # Load data:
     #   - Evaluated iteration numbers
     #   - Relative change confidence intervals
     #   - Estimated area confidence intervals
     #   - Relative convergence threshold
-    RESULTS_ROOT = Path("results") / "data" / "true_area_convergence"
-    FIGURES_ROOT = Path("results") / "figures"
+    RESULTS_ROOT = Path("data") / "shape_convergence"
+    FIGURES_ROOT = Path("figures") / "shape_convergence"
+    FIGURES_ROOT.mkdir(parents=True, exist_ok=True)
 
     with (RESULTS_ROOT / "metadata.json").open("r") as f:
         metadata = json.load(f)
@@ -68,7 +69,7 @@ def plot_true_area_convergence():
 
     # Prepare and save figure
     fig.tight_layout()
-    fig.savefig(FIGURES_ROOT / "true_area_conv.png", dpi=500, bbox_inches="tight")
+    fig.savefig(FIGURES_ROOT / "relchange_and_area.png", dpi=500, bbox_inches="tight")
 
     fig, ax = plt.subplots()
     ax.scatter(
@@ -103,11 +104,11 @@ def plot_true_area_convergence():
     )
     fig.tight_layout()
     fig.savefig(
-        FIGURES_ROOT / "true_area_conv_closeup.png",
+        FIGURES_ROOT / "area_after_convergence.png",
         dpi=500,
         bbox_inches="tight",
     )
 
 
 if __name__ == "__main__":
-    plot_true_area_convergence()
+    plot_shape_convergence()

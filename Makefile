@@ -1,33 +1,26 @@
-DATA = results/data
-FIGURES = results/figures
+SHAPE_CONVERGENCE_FIGURE_NAMES = relchange_and_area.png area_after_convergence.png
+SHAPE_CONVERGENCE_DATA_NAMES = metadata.json iterations.npy area_cis.npy relchange_cis.npy
+SHAPE_CONVERGENCE_FIGURES =  $(patsubst %, figures/shape_convergence/%, $(SHAPE_CONVERGENCE_FIGURE_NAMES))
+SHAPE_CONVERGENCE_DATA =  $(patsubst %, data/shape_convergence/%, $(SHAPE_CONVERGENCE_DATA_NAMES))
 
-TRUE_AREA_CONVERGENCE_PLOTS = \
-			$(FIGURES)/true_area_conv.png \
-			$(FIGURES)/true_area_conv_closeup.png
+FIGURES = $(SHAPE_CONVERGENCE_FIGURES)
 
-DATA_PREREQS = .targets/true_area_convergence
+# all: $(SHAPE_CONVERGENCE_DATA)
+all: $(FIGURES)
 
-all: $(TRUE_AREA_CONVERGENCE_PLOTS)
+$(SHAPE_CONVERGENCE_FIGURES) &: scripts/plot_shape_convergence.py $(SHAPE_CONVERGENCE_DATA) | $(FIGURES_DIR)
+	uv run $<
 
-
-$(FIGURES)/%: scripts/plot_results.py $(DATA_PREREQS)
-	mkdir -p $(FIGURES) && \
-	uv run scripts/plot_results.py
-
-.targets/true_area_convergence: scripts/mb_iter_convergence.py $(DATA) .targets
-	mkdir -p results/data/true_area_convergence && \
-	uv run scripts/mb_iter_convergence.py && \
-	touch $@
-
-$(DATA):
+$(FIGURES_DIR):
 	mkdir -p $@
 
-.targets:
-	mkdir $@
+$(SHAPE_CONVERGENCE_DATA) &: scripts/measure_shape_convergence.py | $(DATA_DIR)
+	uv run $<
+
+$(DATA_DIR):
+	mkdir -p $@
 
 .PHONY: clean
 clean:
-	rm -rf .targets results
-
-
+	rm -rf data figures
 
