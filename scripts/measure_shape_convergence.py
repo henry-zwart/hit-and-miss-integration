@@ -132,11 +132,25 @@ if __name__ == "__main__":
     np.save(RESULTS_ROOT / "relchange_cis.npy", rc_cis)
     np.save(RESULTS_ROOT / "area_cis.npy", area_cis)
 
+    min_convergent_idx = np.argmax(rc_cis[:, 1] < threshold)
+    min_convergent_iters = tested_is[min_convergent_idx]
+    min_convergent_area = area_cis[min_convergent_idx].mean()
+
+    best_estimate_iters = tested_is[-1]
+    best_estimate_area = area_cis[-1].mean()
+
     metadata = {
         "convergence_threshold": threshold,
         "z": z,
+        "ddof": ddof,
         "repeats": repeats,
         "n_samples": n_samples,
+        "min_convergent_idx": int(min_convergent_idx),
+        "min_convergent_iters": int(min_convergent_iters),
+        "min_convergent_area": float(min_convergent_area),
+        "best_estimate_iters": int(best_estimate_iters),
+        "best_estimate_area": float(best_estimate_area),
     }
+
     with (RESULTS_ROOT / "metadata.json").open("w") as f:
         json.dump(metadata, f)

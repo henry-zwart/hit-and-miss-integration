@@ -140,17 +140,17 @@ def estimate_area_per_sample(
     c = sample_complex_uniform(
         n_samples, repeats, x_min, x_max, y_min, y_max, method=sampler
     )
-    hits = calculate_hits(c, iterations)[-1]
+    hits = calculate_hits(c, iterations)
 
     # For each repeat, get prop. hits in (0, ..., s) samples, for each s
-    cumulative_prop_hits = hits.cumsum(axis=0) / np.arange(1, c.shape[0] + 1)[:, None]
+    cumulative_prop_hits = hits.cumsum(axis=1) / np.arange(1, c.shape[0] + 1)[:, None]
 
     # Multiply by volume of sample space to get area
     per_sample_area_est = cumulative_prop_hits * v
 
     # Reduce this to an expected value and ci per sample size
     per_sample_area_exp, per_sample_area_ci = mean_and_ci(
-        per_sample_area_est, axis=1, ddof=ddof, z=z
+        per_sample_area_est, axis=2, ddof=ddof, z=z
     )
 
     return (
@@ -208,7 +208,7 @@ def adaptive_sampling(
     y_max,
     threshold,
     max_depth,
-    cur_depth,
+    cur_depth=0,
 ):
     """
     This is an adaptation to the random sampling Monte carlo technique.

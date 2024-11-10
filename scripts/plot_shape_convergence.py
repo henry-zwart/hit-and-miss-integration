@@ -23,9 +23,9 @@ def plot_shape_convergence():
     area_cis = np.load(RESULTS_ROOT / "area_cis.npy")
 
     convergence_threshold = metadata["convergence_threshold"]
-    min_convergent_idx = np.argmax(relchange_cis[:, 1] < convergence_threshold)
-    min_convergent_iters = iterations[min_convergent_idx]
-    min_convergent_area = area_cis[min_convergent_idx].mean()
+    min_convergent_idx = metadata["min_convergent_idx"]
+    min_convergent_area = metadata["min_convergent_area"]
+    min_convergent_iters = metadata["min_convergent_iters"]
 
     fig, axes = plt.subplots(2, sharex=True)
 
@@ -92,11 +92,11 @@ def plot_shape_convergence():
         color="red",
         transform=ax.get_yaxis_transform(),
     )
-    final_area = area_cis.mean(axis=1)[-1]
+    best_estimate_area = metadata["best_estimate_area"]
     ax.text(
         x=1.01,
-        y=final_area,
-        s=f"{final_area:.4f}",
+        y=best_estimate_area,
+        s=f"{best_estimate_area:.4f}",
         va="center",
         ha="left",
         color="red",

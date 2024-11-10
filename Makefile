@@ -3,18 +3,31 @@ SHAPE_CONVERGENCE_DATA_NAMES = metadata.json iterations.npy area_cis.npy relchan
 SHAPE_CONVERGENCE_FIGURES =  $(patsubst %, figures/shape_convergence/%, $(SHAPE_CONVERGENCE_FIGURE_NAMES))
 SHAPE_CONVERGENCE_DATA =  $(patsubst %, data/shape_convergence/%, $(SHAPE_CONVERGENCE_DATA_NAMES))
 
-FIGURES = $(SHAPE_CONVERGENCE_FIGURES)
+LIMIT_CONVERGENCE_FIGURE_NAMES = limit_error.png limit_area.png
+JOINT_CONVERGENCE_DATA_NAMES = metadata.json expected_area.npy confidence_intervals.npy
+LIMIT_CONVERGENCE_FIGURES =  $(patsubst %, figures/limit_convergence/%, $(LIMIT_CONVERGENCE_FIGURE_NAMES))
+JOINT_CONVERGENCE_DATA = $(patsubst %, data/joint_convergence/%, $(JOINT_CONVERGENCE_DATA_NAMES))
+
+FIGURES = $(SHAPE_CONVERGENCE_FIGURES) $(LIMIT_CONVERGENCE_FIGURES)
 
 # all: $(SHAPE_CONVERGENCE_DATA)
 all: $(FIGURES)
 
-$(SHAPE_CONVERGENCE_FIGURES) &: scripts/plot_shape_convergence.py $(SHAPE_CONVERGENCE_DATA) | $(FIGURES_DIR)
+figures/%: | $(FIGURES_DIR)
+
+$(SHAPE_CONVERGENCE_FIGURES) &: scripts/plot_shape_convergence.py $(SHAPE_CONVERGENCE_DATA)
+	uv run $<
+
+$(LIMIT_CONVERGENCE_FIGURES) &: scripts/plot_limit_convergence.py $(JOINT_CONVERGENCE_DATA)
 	uv run $<
 
 $(FIGURES_DIR):
 	mkdir -p $@
 
 $(SHAPE_CONVERGENCE_DATA) &: scripts/measure_shape_convergence.py | $(DATA_DIR)
+	uv run $<
+
+$(JOINT_CONVERGENCE_DATA) &: scripts/measure_joint_convergence.py src/hit_and_mandelbrot/mandelbrot.py | $(DATA_DIR)
 	uv run $<
 
 $(DATA_DIR):
