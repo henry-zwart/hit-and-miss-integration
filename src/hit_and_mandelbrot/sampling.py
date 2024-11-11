@@ -7,6 +7,7 @@ from scipy.stats.qmc import LatinHypercube
 class Sampler(StrEnum):
     RANDOM = "random"
     LHS = "lhs"
+    ORTHO = "ortho"
 
 
 def sample_lhs(xmin, xmax, ymin, ymax, n, repeats, strength=1):
@@ -38,7 +39,6 @@ def sample_complex_uniform(
     i_min=-2,
     i_max=2,
     method=Sampler.RANDOM,
-    strength=1,
 ):
     match method:
         case Sampler.RANDOM:
@@ -47,7 +47,11 @@ def sample_complex_uniform(
             samples = real_samples + imag_samples
         case Sampler.LHS:
             samples = sample_lhs(
-                r_min, r_max, i_min, i_max, n_samples, repeats, strength
+                r_min, r_max, i_min, i_max, n_samples, repeats, strength=1
+            )
+        case Sampler.ORTHO:
+            samples = sample_lhs(
+                r_min, r_max, i_min, i_max, n_samples, repeats, strength=2
             )
         case _:
             raise ValueError(f"Unknown sampling method: {method}")
