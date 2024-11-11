@@ -3,7 +3,7 @@ from pathlib import Path
 
 import numpy as np
 
-from hit_and_mandelbrot import Sampler, estimate_area, mean_and_ci
+from hit_and_mandelbrot import Sampler, est_area, mean_and_ci
 
 
 def rel_change(i, n_samples, repeats, cache, z=1.96, ddof=1):
@@ -17,7 +17,7 @@ def rel_change(i, n_samples, repeats, cache, z=1.96, ddof=1):
         print(f"Reusing cached result for: i//2 = {i // 2}.")
         a1 = cache[i // 2]
     else:
-        a1 = estimate_area(n_samples, i // 2, repeats=repeats, sampler=Sampler.LHS)
+        a1 = est_area(n_samples, i // 2, repeats=repeats, sampler=Sampler.LHS)
         cache[i // 2] = a1.copy()
 
     # We shouldn't have i in cache (since we shouldn't be repeating).
@@ -26,7 +26,7 @@ def rel_change(i, n_samples, repeats, cache, z=1.96, ddof=1):
         print(f"Warning: {i} has already been tested!")
         a2 = cache[i]
     else:
-        a2 = estimate_area(n_samples, i, repeats=repeats, sampler=Sampler.LHS)
+        a2 = est_area(n_samples, i, repeats=repeats, sampler=Sampler.LHS)
         cache[i] = a2.copy()
     print()
 
@@ -119,8 +119,8 @@ if __name__ == "__main__":
     RESULTS_ROOT.mkdir(parents=True, exist_ok=True)
 
     repeats = 100
-    n_samples = 10000
-    threshold = 2 / 100
+    n_samples = 100000
+    threshold = 5 / 100
     z = 1.96
     ddof = 0
 

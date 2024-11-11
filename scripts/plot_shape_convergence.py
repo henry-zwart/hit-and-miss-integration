@@ -6,11 +6,6 @@ import numpy as np
 
 
 def plot_shape_convergence():
-    # Load data:
-    #   - Evaluated iteration numbers
-    #   - Relative change confidence intervals
-    #   - Estimated area confidence intervals
-    #   - Relative convergence threshold
     RESULTS_ROOT = Path("data") / "shape_convergence"
     FIGURES_ROOT = Path("figures") / "shape_convergence"
     FIGURES_ROOT.mkdir(parents=True, exist_ok=True)
@@ -44,6 +39,8 @@ def plot_shape_convergence():
     axes[0].set_yscale("log")
     axes[0].set_ylabel("Relative change")
     axes[0].set_title("Percentage relative change from A(i-1) -> A(i)")
+    axes[0].spines["right"].set_visible(False)
+    axes[0].spines["top"].set_visible(False)
 
     # Scatterplot of the estimated area for each of the tested i's, with confidence intervals
     axes[1].scatter(iterations, area_cis.mean(axis=1), s=10)
@@ -63,51 +60,45 @@ def plot_shape_convergence():
 
     # Make plot pretty
     axes[1].set_ylabel("Estimated area")
-    axes[1].set_ylim(0, None)
+    axes[1].set_ylim(1, None)
     axes[1].set_xlabel("Iterations")
     axes[1].set_title("Convergence of A(i)")
+    axes[1].spines["right"].set_visible(False)
+    axes[1].spines["top"].set_visible(False)
 
-    # Prepare and save figure
-    fig.tight_layout()
-    fig.savefig(FIGURES_ROOT / "relchange_and_area.png", dpi=500, bbox_inches="tight")
+    # Add zoomed-in section to show area after convergence
 
-    fig, ax = plt.subplots()
-    ax.scatter(
+    # zoom_ax = fig.add_axes([0.44, 0.25, 0.4, 0.16])
+    zoom_ax = axes[1].inset_axes(
+        [0.4, 0.37, 0.5, 0.5],
+        xlim=(min_convergent_iters - 5, iterations[-1] + 5),
+        ylim=(1.51, 1.515),
+        xticks=[],
+    )
+
+    for spine in zoom_ax.spines.values():
+        spine.set_linewidth(0.5)
+
+    rect, leders = axes[1].indicate_inset_zoom(zoom_ax, edgecolor="black")
+    rect.set_edgecolor("none")
+    for leder in leders:
+        leder.set_linewidth(0.5)
+
+    zoom_ax.scatter(
         iterations[min_convergent_idx:],
         area_cis[min_convergent_idx:].mean(axis=1),
         s=10,
     )
-    ax.vlines(
+    zoom_ax.vlines(
         iterations[min_convergent_idx:],
         area_cis[min_convergent_idx:, 0],
         area_cis[min_convergent_idx:, 1],
     )
-    ax.axhline(min_convergent_area, linestyle="dashed", color="red", linewidth=0.5)
-    ax.text(
-        x=1.01,
-        y=min_convergent_area,
-        s=f"{min_convergent_area:.4f}",
-        va="center",
-        ha="left",
-        color="red",
-        transform=ax.get_yaxis_transform(),
-    )
-    best_estimate_area = metadata["best_estimate_area"]
-    ax.text(
-        x=1.01,
-        y=best_estimate_area,
-        s=f"{best_estimate_area:.4f}",
-        va="center",
-        ha="left",
-        color="red",
-        transform=ax.get_yaxis_transform(),
-    )
+    zoom_ax.axhline(min_convergent_area, linestyle="dashed", color="red", linewidth=0.5)
+
+    # Prepare and save figure
     fig.tight_layout()
-    fig.savefig(
-        FIGURES_ROOT / "area_after_convergence.png",
-        dpi=500,
-        bbox_inches="tight",
-    )
+    fig.savefig(FIGURES_ROOT / "relchange_and_area.png", dpi=500, bbox_inches="tight")
 
 
 if __name__ == "__main__":

@@ -3,7 +3,7 @@ from pathlib import Path
 
 import numpy as np
 
-from hit_and_mandelbrot.mandelbrot import in_mandelbrot
+from hit_and_mandelbrot.hits import calculate_sample_hits
 
 if __name__ == "__main__":
     RESULTS_ROOT = Path("data") / "mandelbrot"
@@ -20,7 +20,8 @@ if __name__ == "__main__":
 
     hits = np.zeros((len(ITERATIONS), len(c)), dtype=bool)
     for i, iters in enumerate(ITERATIONS):
-        hits[i] = in_mandelbrot(c, iters)
+        # function expects a second dimension for 'repeats'. Mock this.
+        hits[i] = calculate_sample_hits(c[:, None], iters)[:, 0]
 
     np.save(RESULTS_ROOT / "hits.npy", hits)
 

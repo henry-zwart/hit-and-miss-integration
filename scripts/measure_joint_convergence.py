@@ -3,9 +3,11 @@ from pathlib import Path
 
 import numpy as np
 
-from hit_and_mandelbrot.mandelbrot import estimate_area, estimate_area_per_sample
+from hit_and_mandelbrot.mandelbrot import est_area
 from hit_and_mandelbrot.sampling import Sampler
 from hit_and_mandelbrot.statistics import mean_and_ci
+
+np.random.seed(39)
 
 
 def measure_equiv_errors(area, ε_min, ε_max, steps, repeats, z, ddof):
@@ -17,7 +19,7 @@ def measure_equiv_errors(area, ε_min, ε_max, steps, repeats, z, ddof):
     corresponding_s = np.argmax(ε_s < ε_measure[:, None], axis=1)
     corresponding_areas = []
     for i, s in zip(corresponding_i, corresponding_s):
-        a = estimate_area(s, i, repeats=repeats, quiet=True)
+        a = est_area(s, i, repeats=repeats, quiet=True)
         expected_area, _ = mean_and_ci(a, z, ddof)
         corresponding_areas.append(expected_area)
     return (ε_measure, corresponding_areas)
@@ -34,18 +36,19 @@ if __name__ == "__main__":
     ddof = 0
     z = 1.96
 
-    equiv_ε_min = 0.0001
+    equiv_ε_min = 0.001
     equiv_ε_max = 0.003
     equiv_ε_steps = 100
 
-    expected_area, confidence_interval = estimate_area_per_sample(
+    area = est_area(
         n_samples,
         iterations,
         repeats=repeats,
         sampler=sampler,
-        ddof=ddof,
-        z=z,
+        per_sample=True,
+        per_iter=True,
     )
+    expected_area, confidence_interval = mean_and_ci(area, axis=2, ddof=ddof, z=z)
 
     np.save(RESULTS_ROOT / "expected_area.npy", expected_area)
     np.save(RESULTS_ROOT / "confidence_intervals.npy", confidence_interval)

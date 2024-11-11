@@ -3,7 +3,7 @@ MANDELBROT_DATA_NAMES = metadata.json hits.npy
 MANDELBROT_FIGURES = $(patsubst %, figures/mandelbrot/%, $(MANDELBROT_FIGURE_NAMES))
 MANDELBROT_DATA = $(patsubst %, data/mandelbrot/%, $(MANDELBROT_DATA_NAMES))
 
-SHAPE_CONVERGENCE_FIGURE_NAMES = relchange_and_area.png area_after_convergence.png
+SHAPE_CONVERGENCE_FIGURE_NAMES = relchange_and_area.png
 SHAPE_CONVERGENCE_DATA_NAMES = metadata.json iterations.npy area_cis.npy relchange_cis.npy
 SHAPE_CONVERGENCE_FIGURES =  $(patsubst %, figures/shape_convergence/%, $(SHAPE_CONVERGENCE_FIGURE_NAMES))
 SHAPE_CONVERGENCE_DATA =  $(patsubst %, data/shape_convergence/%, $(SHAPE_CONVERGENCE_DATA_NAMES))
