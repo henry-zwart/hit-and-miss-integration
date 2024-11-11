@@ -13,7 +13,7 @@ JOINT_CONVERGENCE_DATA_NAMES = metadata.json expected_area.npy confidence_interv
 LIMIT_CONVERGENCE_FIGURES = $(patsubst %, figures/limit_convergence/%, $(LIMIT_CONVERGENCE_FIGURE_NAMES))
 JOINT_CONVERGENCE_DATA = $(patsubst %, data/joint_convergence/%, $(JOINT_CONVERGENCE_DATA_NAMES))
 
-JOINT_ERROR_FIGURE_NAMES = equiv_error_areas.png error_contour.png error_hist.png
+JOINT_ERROR_FIGURE_NAMES = error_contour.png error_hist.png
 JOINT_ERROR_FIGURES = $(patsubst %, figures/joint_error/%, $(JOINT_ERROR_FIGURE_NAMES))
 
 FIGURES = $(MANDELBROT_FIGURES) $(SHAPE_CONVERGENCE_FIGURES) $(LIMIT_CONVERGENCE_FIGURES) $(JOINT_ERROR_FIGURES)

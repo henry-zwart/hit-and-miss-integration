@@ -18,18 +18,6 @@ if __name__ == "__main__":
     expected_area = np.load(RESULTS_ROOT / "expected_area.npy")
     confidence_interval = np.load(RESULTS_ROOT / "confidence_intervals.npy")
 
-    # Plot area for equivalent errors
-    equiv_errors = np.load(RESULTS_ROOT / "equiv_errors_measured.npy")
-    equiv_error_areas = np.load(RESULTS_ROOT / "equiv_error_areas.npy")
-
-    fig, ax = plt.subplots()
-    ax.scatter(equiv_errors, equiv_error_areas)
-    ax.set_xlabel("Error")
-    ax.set_ylabel("Area estimate")
-    ax.set_title(r"Mandelbrot area estimate for $\epsilon_i = \epsilon_s$")
-    fig.tight_layout()
-    fig.savefig(FIGURES_ROOT / "equiv_error_areas.png", dpi=500, bbox_inches="tight")
-
     # Plot heatmap / contour for error given sample size and iters
     fig, ax = plt.subplots(2)
     iteration_numbers = np.arange(metadata["max_iterations"] + 1)

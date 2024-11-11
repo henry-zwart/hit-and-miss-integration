@@ -53,12 +53,12 @@ if __name__ == "__main__":
     np.save(RESULTS_ROOT / "expected_area.npy", expected_area)
     np.save(RESULTS_ROOT / "confidence_intervals.npy", confidence_interval)
 
-    ε_measure, ε_equiv_areas = measure_equiv_errors(
-        expected_area, equiv_ε_min, equiv_ε_max, equiv_ε_steps, repeats, z, ddof
-    )
-
-    np.save(RESULTS_ROOT / "equiv_errors_measured.npy", ε_measure)
-    np.save(RESULTS_ROOT / "equiv_error_areas.npy", ε_equiv_areas)
+    #    ε_measure, ε_equiv_areas = measure_equiv_errors(
+    #        expected_area, equiv_ε_min, equiv_ε_max, equiv_ε_steps, repeats, z, ddof
+    #    )
+    #
+    #    np.save(RESULTS_ROOT / "equiv_errors_measured.npy", ε_measure)
+    #    np.save(RESULTS_ROOT / "equiv_error_areas.npy", ε_equiv_areas)
 
     metadata = {
         "max_samples": n_samples,
@@ -67,9 +67,9 @@ if __name__ == "__main__":
         "sampling_method": str(sampler),
         "ddof": ddof,
         "z": z,
-        "equiv_err_min": equiv_ε_min,
-        "equiv_err_max": equiv_ε_max,
-        "equiv_err_steps": equiv_ε_steps,
+        #        "equiv_err_min": equiv_ε_min,
+        #        "equiv_err_max": equiv_ε_max,
+        #        "equiv_err_steps": equiv_ε_steps,
     }
 
     with (RESULTS_ROOT / "metadata.json").open("w") as f:
