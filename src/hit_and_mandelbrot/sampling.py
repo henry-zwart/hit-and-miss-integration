@@ -20,10 +20,12 @@ class Samples:
     c: np.array
 
 
-def sample_lhs(xmin, xmax, ymin, ymax, n, repeats, strength=1):
+def sample_lhs(xmin, xmax, ymin, ymax, n, repeats, strength=1, quiet=False):
     # Sample from [0,1)
     lhs = LatinHypercube(d=2, strength=strength)
-    normalised_real_samples = np.stack([lhs.random(n) for _ in trange(repeats)])
+    range_fn = range if quiet else trange
+    normalised_real_samples = np.stack([lhs.random(n) for _ in range_fn(repeats)])
+    np.random.shuffle(normalised_real_samples)
 
     # Scale up to [xmin, xmax) and [ymin, ymax)
     scaled_real_samples = normalised_real_samples
@@ -45,6 +47,7 @@ def sample_complex_uniform(
     i_min=-2,
     i_max=2,
     method=Sampler.RANDOM,
+    quiet=False,
 ):
     # Ensure coordinates are such that min <= max
     if r_min > r_max:
@@ -62,11 +65,25 @@ def sample_complex_uniform(
             samples = real_samples + imag_samples
         case Sampler.LHS:
             samples = sample_lhs(
-                r_min, r_max, i_min, i_max, n_samples, repeats, strength=1
+                r_min,
+                r_max,
+                i_min,
+                i_max,
+                n_samples,
+                repeats,
+                strength=1,
+                quiet=quiet,
             )
         case Sampler.ORTHO:
             samples = sample_lhs(
-                r_min, r_max, i_min, i_max, n_samples, repeats, strength=2
+                r_min,
+                r_max,
+                i_min,
+                i_max,
+                n_samples,
+                repeats,
+                strength=2,
+                quiet=quiet,
             )
         case _:
             raise ValueError(f"Unknown sampling method: {method}")

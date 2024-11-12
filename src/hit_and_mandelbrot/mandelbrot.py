@@ -45,7 +45,14 @@ def est_area(
     t0 = time.time()
     if samples is None:
         samples = sample_complex_uniform(
-            n_samples, repeats, x_min, x_max, y_min, y_max, method=sampler
+            n_samples,
+            repeats,
+            x_min,
+            x_max,
+            y_min,
+            y_max,
+            method=sampler,
+            quiet=quiet,
         )
     else:
         print("Samples provided, ignoring sampling parameters.")
