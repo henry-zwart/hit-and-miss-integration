@@ -1,7 +1,9 @@
+from dataclasses import dataclass
 from enum import StrEnum
 
 import numpy as np
 from scipy.stats.qmc import LatinHypercube
+from tqdm import trange
 
 
 class Sampler(StrEnum):
@@ -10,11 +12,19 @@ class Sampler(StrEnum):
     ORTHO = "ortho"
 
 
+@dataclass
+class Samples:
+    real_lims: tuple[float, float]
+    imag_lims: tuple[float, float]
+    space_vol: float
+    c: np.array
+
+
 def sample_lhs(xmin, xmax, ymin, ymax, n, repeats, strength=1):
     # Sample from [0,1)
     lhs = LatinHypercube(d=2, strength=strength)
     normalised_real_samples = np.stack(
-        [lhs.random(n) for _ in range(repeats)],
+        [lhs.random(n) for _ in trange(repeats)],
         axis=2,
     )
 
@@ -40,6 +50,15 @@ def sample_complex_uniform(
     i_max=2,
     method=Sampler.RANDOM,
 ):
+    # Ensure coordinates are such that min <= max
+    if r_min > r_max:
+        r_min, r_max = r_max, r_min
+    if i_min > i_max:
+        i_min, i_max = i_max, i_min
+
+    if method != "adaptive":
+        space_vol = (r_max - r_min) * (i_max - i_min)
+
     match method:
         case Sampler.RANDOM:
             real_samples = np.random.uniform(r_min, r_max, (n_samples, repeats))
@@ -55,4 +74,10 @@ def sample_complex_uniform(
             )
         case _:
             raise ValueError(f"Unknown sampling method: {method}")
-    return samples
+
+    return Samples(
+        real_lims=(r_min, r_max),
+        imag_lims=(i_min, i_max),
+        space_vol=space_vol,
+        c=samples,
+    )

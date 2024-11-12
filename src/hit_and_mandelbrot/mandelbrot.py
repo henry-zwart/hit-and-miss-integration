@@ -9,7 +9,7 @@ from .hits import (
     calculate_sample_hits,
     calculate_sample_iter_hits,
 )
-from .sampling import Sampler, sample_complex_uniform
+from .sampling import Sampler, Samples, sample_complex_uniform
 
 
 def _prepare_params(
@@ -38,19 +38,26 @@ def in_mandelbrot(c: np.array, iterations: int):
 
 
 def est_area(
-    n_samples,
-    iterations,
-    x_min=-2,
-    x_max=2,
-    y_min=-2,
-    y_max=2,
-    repeats=1,
-    sampler=Sampler.RANDOM,
-    quiet=False,
-    per_sample=False,
-    per_iter=False,
+    n_samples: int | None = None,
+    iterations: int | None = None,
+    x_min: float = -2.0,
+    x_max: float = 2.0,
+    y_min: float = -2.0,
+    y_max: float = 2.0,
+    repeats: int = 1,
+    sampler: Sampler | None = None,
+    samples: Samples | None = None,
+    per_sample: bool = False,
+    per_iter: bool = False,
+    quiet: bool = False,
 ):
-    x_min, x_max, y_min, y_max, v = _prepare_params(x_min, x_max, y_min, y_max)
+    # x_min, x_max, y_min, y_max, v = _prepare_params(x_min, x_max, y_min, y_max)
+    assert (samples is not None) or not any((n_samples is None, sampler is None))
+
+    if samples is not None:
+        n_samples = samples.c.shape[0]
+        repeats = samples.c.shape[1]
+
     if not quiet:
         print("Running Mandelbrot area estimation:")
         print(
@@ -62,33 +69,36 @@ def est_area(
         print(f"\tSampling method: {str(sampler)}")
 
     t0 = time.time()
-    c = sample_complex_uniform(
-        n_samples, repeats, x_min, x_max, y_min, y_max, method=sampler
-    )
+    if samples is None:
+        samples = sample_complex_uniform(
+            n_samples, repeats, x_min, x_max, y_min, y_max, method=sampler
+        )
+    else:
+        print("Samples provided, ignoring sampling parameters.")
 
     match (per_sample, per_iter):
         case (False, False):  # Just record the final proportion
             # Divide number of hits by number of samples
-            hits_count = calculate_hits(c, iterations)
+            hits_count = calculate_hits(samples.c, iterations)
             proportion_hits = hits_count / n_samples
         case (True, False):  # Proportion per individual sample
             # Calculate cumulative sum over samples, divide by 1 + idx to get
             #   per-sample proportion
-            hits = calculate_sample_hits(c, iterations)
+            hits = calculate_sample_hits(samples.c, iterations)
             hits_count = hits.cumsum(axis=0)
-            proportion_hits = hits_count / np.arange(1, c.shape[0] + 1)[:, None]
+            proportion_hits = hits_count / np.arange(1, samples.c.shape[0] + 1)[:, None]
         case (False, True):  # Proportion per-iteration
             # Divide count by number of samples
-            hits_count = calculate_iter_hits(c, iterations)
+            hits_count = calculate_iter_hits(samples.c, iterations)
             proportion_hits = hits_count / n_samples
         case (True, True):  # Proportion per-iteration and per-sample
             # As in (True, False) case
-            hits = calculate_sample_iter_hits(c, iterations)
+            hits = calculate_sample_iter_hits(samples.c, iterations)
             hits_count = hits.cumsum(axis=1)
-            proportion_hits = hits_count / np.arange(1, c.shape[0] + 1)[:, None]
+            proportion_hits = hits_count / np.arange(1, samples.c.shape[0] + 1)[:, None]
 
     # Calculate area as the sample space volume multiplied by proportion of hits
-    area_estimates = proportion_hits * v
+    area_estimates = proportion_hits * samples.space_vol
     t1 = time.time()
 
     t = t1 - t0

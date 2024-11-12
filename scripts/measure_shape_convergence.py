@@ -4,9 +4,10 @@ from pathlib import Path
 import numpy as np
 
 from hit_and_mandelbrot import Sampler, est_area, mean_and_ci
+from hit_and_mandelbrot.sampling import sample_complex_uniform
 
 
-def rel_change(i, n_samples, repeats, cache, z=1.96, ddof=1):
+def rel_change(i, samples, cache, z=1.96, ddof=1):
     assert i > 0
     print("\n")
     print("=" * 20)
@@ -17,7 +18,7 @@ def rel_change(i, n_samples, repeats, cache, z=1.96, ddof=1):
         print(f"Reusing cached result for: i//2 = {i // 2}.")
         a1 = cache[i // 2]
     else:
-        a1 = est_area(n_samples, i // 2, repeats=repeats, sampler=Sampler.LHS)
+        a1 = est_area(samples=samples, iterations=i // 2)
         cache[i // 2] = a1.copy()
 
     # We shouldn't have i in cache (since we shouldn't be repeating).
@@ -26,7 +27,7 @@ def rel_change(i, n_samples, repeats, cache, z=1.96, ddof=1):
         print(f"Warning: {i} has already been tested!")
         a2 = cache[i]
     else:
-        a2 = est_area(n_samples, i, repeats=repeats, sampler=Sampler.LHS)
+        a2 = est_area(samples=samples, iterations=i)
         cache[i] = a2.copy()
     print()
 
@@ -52,20 +53,20 @@ def print_rc_ci_msg(ci, threshold):
         )
 
 
-def find_pow2_upper_bound(n_samples, threshold, repeats, cache, z=1.96, ddof=1):
+def find_pow2_upper_bound(samples, threshold, cache, z=1.96, ddof=1):
     tested_is = []
     rc_cis = []
     area_cis = []
 
     i = 1
-    rc_ci, area_ci = rel_change(2**i, n_samples, repeats, cache, z=z, ddof=ddof)
+    rc_ci, area_ci = rel_change(2**i, samples, cache, z=z, ddof=ddof)
     tested_is.append(2**i)
     rc_cis.append(rc_ci)
     area_cis.append(area_ci)
     while rc_ci[1] > threshold:
         print_rc_ci_msg(rc_ci, threshold)
         i += 1
-        rc_ci, area_ci = rel_change(2**i, n_samples, repeats, cache, z=z, ddof=ddof)
+        rc_ci, area_ci = rel_change(2**i, samples, cache, z=z, ddof=ddof)
         tested_is.append(2**i)
         rc_cis.append(rc_ci)
         area_cis.append(area_ci)
@@ -75,17 +76,17 @@ def find_pow2_upper_bound(n_samples, threshold, repeats, cache, z=1.96, ddof=1):
     return tested_is, rc_cis, area_cis
 
 
-def minimal_convergence_iteration(n_samples, threshold, repeats, z, ddof):
+def minimal_convergence_iteration(samples, threshold, z, ddof):
     cache = {}
     tested_is, rc_cis, area_cis = find_pow2_upper_bound(
-        n_samples, threshold, repeats, cache, z, ddof
+        samples, threshold, cache, z, ddof
     )
 
     # Run binary search to find first i which is convergent
     left, right = tested_is[-2:]
     while left <= right:
         mid = (left + right) // 2
-        rc_ci, area_ci = rel_change(mid, n_samples, repeats, cache, z=z, ddof=ddof)
+        rc_ci, area_ci = rel_change(mid, samples, cache, z=z, ddof=ddof)
         print_rc_ci_msg(rc_ci, threshold)
 
         tested_is.append(mid)
@@ -118,14 +119,25 @@ if __name__ == "__main__":
     RESULTS_ROOT = Path("data") / "shape_convergence"
     RESULTS_ROOT.mkdir(parents=True, exist_ok=True)
 
-    repeats = 100
-    n_samples = 100000
-    threshold = 5 / 100
+    repeats = 3
+    n_samples = 281**2
+    threshold = 0.1 / 100
     z = 1.96
-    ddof = 0
+    ddof = 1
+    sampler = Sampler.ORTHO
+
+    print(f"Sampling: {n_samples} from {sampler} sampler, with {repeats} repeats.")
+    samples = sample_complex_uniform(
+        n_samples=n_samples,
+        repeats=repeats,
+        method=sampler,
+    )
 
     tested_is, rc_cis, area_cis = minimal_convergence_iteration(
-        n_samples, threshold, repeats, z=z, ddof=ddof
+        samples,
+        threshold,
+        z=z,
+        ddof=ddof,
     )
 
     np.save(RESULTS_ROOT / "iterations.npy", tested_is)
@@ -145,6 +157,7 @@ if __name__ == "__main__":
         "ddof": ddof,
         "repeats": repeats,
         "n_samples": n_samples,
+        "sampler": sampler,
         "min_convergent_idx": int(min_convergent_idx),
         "min_convergent_iters": int(min_convergent_iters),
         "min_convergent_area": float(min_convergent_area),
