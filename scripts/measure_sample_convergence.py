@@ -2,6 +2,8 @@ import json
 from pathlib import Path
 
 import numpy as np
+from sympy import sieve
+from tqdm import tqdm
 
 from hit_and_mandelbrot.mandelbrot import est_area
 from hit_and_mandelbrot.sampling import Sampler
@@ -11,9 +13,15 @@ if __name__ == "__main__":
     RESULTS_ROOT = Path("data") / "sample_convergence"
     RESULTS_ROOT.mkdir(parents=True, exist_ok=True)
 
-    MAX_SAMPLES = 101**2  # a little prime
-    # MAX_SAMPLES = 1051**2  # a big prime
-    REPEATS = 10
+    sieve.extend(311)
+    primes = np.array(sieve._list)
+    sample_sizes = primes**2
+    MAX_SAMPLES_IDX = {
+        Sampler.RANDOM: len(sample_sizes) - 1,
+        Sampler.LHS: len(sample_sizes) - 1,
+        Sampler.ORTHO: np.argmax(sample_sizes >= 101**2),
+    }
+    REPEATS = 30
     z = 1.96
     ddof = 1
 
@@ -26,21 +34,35 @@ if __name__ == "__main__":
     min_convergent_iters = metadata["min_convergent_iters"]
 
     # Calculate per-sample-size area and CI for each sampling algorithm
-    for sampler in Sampler:
-        area = est_area(
-            MAX_SAMPLES,
-            min_convergent_iters,
-            repeats=REPEATS,
-            per_sample=True,
-            sampler=sampler,
-        )
-        expected_area, ci = mean_and_ci(area, z=z, ddof=ddof)
-        np.save(RESULTS_ROOT / f"{sampler}_area.npy", expected_area)
-        np.save(RESULTS_ROOT / f"{sampler}_ci.npy", ci)
-        np.save(RESULTS_ROOT / f"{sampler}_sample_size.npy", np.arange(MAX_SAMPLES))
+    with tqdm(total=sum(MAX_SAMPLES_IDX[sampler] + 1 for sampler in Sampler)) as pbar:
+        for sampler in Sampler:
+            # We don't sample the large sample sizes for orthog, since its too expensive
+            iter_sample_sizes = sample_sizes[: MAX_SAMPLES_IDX[sampler]]
+            measured_areas = np.empty(
+                (len(iter_sample_sizes), REPEATS), dtype=np.float64
+            )
+            expected_areas = np.empty_like(iter_sample_sizes, dtype=np.float64)
+            cis = np.empty_like(iter_sample_sizes, dtype=np.float64)
+            for i, sample_size in enumerate(iter_sample_sizes):
+                area = est_area(
+                    sample_size,
+                    min_convergent_iters,
+                    repeats=REPEATS,
+                    sampler=sampler,
+                    quiet=True,
+                )
+                expected_area, ci = mean_and_ci(area, z=z, ddof=ddof)
+                expected_areas[i] = expected_area
+                measured_areas[i] = area
+                cis[i] = ci
+                pbar.update()
+            np.save(RESULTS_ROOT / f"{sampler}_measured_area.npy", measured_areas)
+            np.save(RESULTS_ROOT / f"{sampler}_expected_area.npy", expected_areas)
+            np.save(RESULTS_ROOT / f"{sampler}_ci.npy", cis)
+            np.save(RESULTS_ROOT / f"{sampler}_sample_size.npy", iter_sample_sizes)
 
     metadata = {
-        "max_samples": MAX_SAMPLES,
+        "max_samples": int(sample_sizes[-1]),
         "repeats": REPEATS,
         "z": z,
         "ddof": ddof,
