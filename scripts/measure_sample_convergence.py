@@ -13,7 +13,7 @@ if __name__ == "__main__":
 
     MAX_SAMPLES = 101**2  # a little prime
     # MAX_SAMPLES = 1051**2  # a big prime
-    REPEATS = 300
+    REPEATS = 100
     z = 1.96
     ddof = 1
 

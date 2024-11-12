@@ -8,7 +8,7 @@ from hit_and_mandelbrot.sampling import Sampler
 
 if __name__ == "__main__":
     MIN_SAMPLES = 10
-    ABSOLUTE_THRESHOLD = 0.1 / 100
+    ABSOLUTE_THRESHOLD = 1 / 100
 
     RESULTS_ROOT = Path("data") / "sample_convergence"
     FIGURES_ROOT = Path("figures") / "sample_convergence"
@@ -38,9 +38,9 @@ if __name__ == "__main__":
         "ortho": "green",
     }
     for i, sampler in enumerate(Sampler):
-        area = np.load(RESULTS_ROOT / f"{sampler}_area.npy")[2000:]
-        ci = np.load(RESULTS_ROOT / f"{sampler}_ci.npy")[2000:]
-        sample_size = np.load(RESULTS_ROOT / f"{sampler}_sample_size.npy")[2000:]
+        area = np.load(RESULTS_ROOT / f"{sampler}_area.npy")[MIN_SAMPLES:]
+        ci = np.load(RESULTS_ROOT / f"{sampler}_ci.npy")[MIN_SAMPLES:]
+        sample_size = np.load(RESULTS_ROOT / f"{sampler}_sample_size.npy")[MIN_SAMPLES:]
         lower = area - ci
         upper = area + ci
         axes[i].fill_between(

@@ -56,7 +56,7 @@ $(JOINT_CONVERGENCE_DATA) &: scripts/measure_joint_convergence.py src/hit_and_ma
 $(MANDELBROT_DATA) &: scripts/deterministic_mandelbrot.py | $(DATA_DIR)
 	uv run $<
 
-$(SAMPLE_CONVERGENCE_DATA) &: scripts/measure_sample_convergence.py
+$(SAMPLE_CONVERGENCE_DATA) &: scripts/measure_sample_convergence.py $(SHAPE_CONVERGENCE_DATA)
 	uv run $<
 
 $(DATA_DIR):
