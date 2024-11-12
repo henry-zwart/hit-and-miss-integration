@@ -29,10 +29,10 @@ def plot_shape_convergence():
     axes[0].vlines(iterations, 100 * relchange_cis[:, 0], 100 * relchange_cis[:, 1])
 
     # Horizontal line at threshold, vertical red line at first i which achieves convergence
-    axes[0].axhline(y=100 * convergence_threshold, color="grey", linewidth=0.5)
-    axes[0].axvline(
-        min_convergent_iters, linestyle="dashed", color="red", linewidth=0.5
+    axes[0].axhline(
+        y=100 * convergence_threshold, color="red", linewidth=0.5, linestyle="dashed"
     )
+    axes[0].axvline(min_convergent_iters, color="grey", linewidth=0.5)
 
     # Make plot pretty
     axes[0].set_xlim(1, None)
@@ -46,7 +46,10 @@ def plot_shape_convergence():
     axes[1].vlines(iterations, area_cis[:, 0], area_cis[:, 1])
 
     # Horizontal red line at minimum convergent area
-    axes[1].axhline(min_convergent_area, linestyle="dashed", color="red", linewidth=0.5)
+    axes[1].axhline(
+        area_cis[min_convergent_idx, 1], linestyle="dashed", color="red", linewidth=0.5
+    )
+    axes[1].axvline(min_convergent_iters, color="grey", linewidth=0.5)
     axes[1].text(
         x=1.01,
         y=min_convergent_area,
@@ -69,8 +72,8 @@ def plot_shape_convergence():
     # zoom_ax = fig.add_axes([0.44, 0.25, 0.4, 0.16])
     zoom_ax = axes[1].inset_axes(
         [0.4, 0.37, 0.5, 0.5],
-        xlim=(min_convergent_iters - 5, iterations[-1] + 5),
-        ylim=(1.51, 1.515),
+        xlim=(min_convergent_iters - 50, iterations[-1] + 50),
+        ylim=(1.505, 1.510),
         xticks=[],
     )
 
@@ -92,7 +95,9 @@ def plot_shape_convergence():
         area_cis[min_convergent_idx:, 0],
         area_cis[min_convergent_idx:, 1],
     )
-    zoom_ax.axhline(min_convergent_area, linestyle="dashed", color="red", linewidth=0.5)
+    zoom_ax.axhline(
+        area_cis[min_convergent_idx, 1], linestyle="dashed", color="red", linewidth=0.5
+    )
 
     # Prepare and save figure
     fig.tight_layout()
