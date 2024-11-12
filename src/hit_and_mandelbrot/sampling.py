@@ -23,21 +23,17 @@ class Samples:
 def sample_lhs(xmin, xmax, ymin, ymax, n, repeats, strength=1):
     # Sample from [0,1)
     lhs = LatinHypercube(d=2, strength=strength)
-    normalised_real_samples = np.stack(
-        [lhs.random(n) for _ in trange(repeats)],
-        axis=2,
-    )
+    normalised_real_samples = np.stack([lhs.random(n) for _ in trange(repeats)])
 
     # Scale up to [xmin, xmax) and [ymin, ymax)
     scaled_real_samples = normalised_real_samples
-    scaled_real_samples[:, 0] = scaled_real_samples[:, 0] * (xmax - xmin) + xmin
-    scaled_real_samples[:, 1] = scaled_real_samples[:, 1] * (ymax - ymin) + ymin
+    scaled_real_samples[..., 0] = scaled_real_samples[..., 0] * (xmax - xmin) + xmin
+    scaled_real_samples[..., 1] = scaled_real_samples[..., 1] * (ymax - ymin) + ymin
 
     # Make the second component imaginary, and sum to get complex samples
     complex_2d_samples = scaled_real_samples.astype(np.complex128)
-    complex_2d_samples[:, 1] *= 1.0j
-    complex_samples = complex_2d_samples.sum(axis=1)
-
+    complex_2d_samples[..., 1] *= 1.0j
+    complex_samples = complex_2d_samples.sum(axis=-1)
     return complex_samples
 
 
@@ -61,8 +57,8 @@ def sample_complex_uniform(
 
     match method:
         case Sampler.RANDOM:
-            real_samples = np.random.uniform(r_min, r_max, (n_samples, repeats))
-            imag_samples = np.random.uniform(i_min, i_max, (n_samples, repeats)) * 1.0j
+            real_samples = np.random.uniform(r_min, r_max, (repeats, n_samples))
+            imag_samples = np.random.uniform(i_min, i_max, (repeats, n_samples)) * 1.0j
             samples = real_samples + imag_samples
         case Sampler.LHS:
             samples = sample_lhs(

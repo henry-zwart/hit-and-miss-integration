@@ -13,7 +13,7 @@ if __name__ == "__main__":
 
     MAX_SAMPLES = 101**2  # a little prime
     # MAX_SAMPLES = 1051**2  # a big prime
-    REPEATS = 100
+    REPEATS = 10
     z = 1.96
     ddof = 1
 
@@ -34,7 +34,7 @@ if __name__ == "__main__":
             per_sample=True,
             sampler=sampler,
         )
-        expected_area, ci = mean_and_ci(area, z=z, ddof=ddof, axis=1)
+        expected_area, ci = mean_and_ci(area, z=z, ddof=ddof)
         np.save(RESULTS_ROOT / f"{sampler}_area.npy", expected_area)
         np.save(RESULTS_ROOT / f"{sampler}_ci.npy", ci)
         np.save(RESULTS_ROOT / f"{sampler}_sample_size.npy", np.arange(MAX_SAMPLES))

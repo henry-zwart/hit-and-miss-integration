@@ -48,7 +48,8 @@ if __name__ == "__main__":
         per_sample=True,
         per_iter=True,
     )
-    expected_area, confidence_interval = mean_and_ci(area, axis=2, ddof=ddof, z=z)
+    print(area.shape)
+    expected_area, confidence_interval = mean_and_ci(area, ddof=ddof, z=z)
 
     np.save(RESULTS_ROOT / "expected_area.npy", expected_area)
     np.save(RESULTS_ROOT / "confidence_intervals.npy", confidence_interval)

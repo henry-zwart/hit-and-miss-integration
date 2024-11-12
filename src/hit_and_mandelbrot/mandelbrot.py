@@ -1,6 +1,5 @@
 import time
 
-import numba
 import numpy as np
 
 from .hits import (
@@ -10,31 +9,6 @@ from .hits import (
     calculate_sample_iter_hits,
 )
 from .sampling import Sampler, Samples, sample_complex_uniform
-
-
-def _prepare_params(
-    x_min, x_max, y_min, y_max
-) -> tuple[float, float, float, float, float]:
-    if x_min > x_max:
-        x_min, x_max = x_max, x_min
-    if y_min > y_max:
-        y_min, y_max = y_max, y_min
-    v = (x_max - x_min) * (y_max - y_min)
-    return (x_min, x_max, y_min, y_max, v)
-
-
-@numba.njit
-def in_mandelbrot(c: np.array, iterations: int):
-    """Determine whether an array of values are in Mandelbrot after given iterations."""
-    z = c.copy()
-    bounded = np.abs(c) <= 2
-    for _ in range(1, iterations + 1):
-        for s in range(c.shape[0]):
-            if bounded[s]:
-                z[s] = z[s] ** 2 + c[s]
-                if np.abs(z[s]) > 2:
-                    bounded[s] = False
-    return bounded
 
 
 def est_area(
@@ -85,8 +59,8 @@ def est_area(
             # Calculate cumulative sum over samples, divide by 1 + idx to get
             #   per-sample proportion
             hits = calculate_sample_hits(samples.c, iterations)
-            hits_count = hits.cumsum(axis=0)
-            proportion_hits = hits_count / np.arange(1, samples.c.shape[0] + 1)[:, None]
+            hits_count = hits.cumsum(axis=-1)
+            proportion_hits = hits_count / np.arange(1, samples.c.shape[1] + 1)
         case (False, True):  # Proportion per-iteration
             # Divide count by number of samples
             hits_count = calculate_iter_hits(samples.c, iterations)
@@ -94,8 +68,8 @@ def est_area(
         case (True, True):  # Proportion per-iteration and per-sample
             # As in (True, False) case
             hits = calculate_sample_iter_hits(samples.c, iterations)
-            hits_count = hits.cumsum(axis=1)
-            proportion_hits = hits_count / np.arange(1, samples.c.shape[0] + 1)[:, None]
+            hits_count = hits.cumsum(axis=-1)
+            proportion_hits = hits_count / np.arange(1, samples.c.shape[1] + 1)
 
     # Calculate area as the sample space volume multiplied by proportion of hits
     area_estimates = proportion_hits * samples.space_vol
