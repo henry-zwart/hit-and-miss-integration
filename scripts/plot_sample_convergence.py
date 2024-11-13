@@ -19,8 +19,8 @@ def final_true(mask, axis, invalid_val=-1):
 
 
 if __name__ == "__main__":
-    MIN_SAMPLES = 10
-    ABS_THRESHOLD = 1 / 100
+    MIN_SAMPLES = 20
+    ABS_THRESHOLD = 1.5 / 100
 
     RESULTS_ROOT = Path("data") / "sample_convergence"
     FIGURES_ROOT = Path("figures") / "sample_convergence"
@@ -32,7 +32,7 @@ if __name__ == "__main__":
     with (Path("data") / "shape_convergence" / "metadata.json").open("r") as f:
         target_area = json.load(f)["min_convergent_area"]
 
-    fig, axes = plt.subplots(3, sharey=True)
+    fig, axes = plt.subplots(3, sharey=True, sharex=True)
 
     for ax in axes:
         ax.axhline(target_area, color="grey", linewidth=1)
@@ -57,6 +57,7 @@ if __name__ == "__main__":
     }
     for i, sampler in enumerate(Sampler):
         area = np.load(RESULTS_ROOT / f"{sampler}_expected_area.npy")[MIN_SAMPLES:]
+
         ci = np.load(RESULTS_ROOT / f"{sampler}_ci.npy")[MIN_SAMPLES:]
         sample_size = np.load(RESULTS_ROOT / f"{sampler}_sample_size.npy")[MIN_SAMPLES:]
         lower = area - ci
@@ -77,6 +78,7 @@ if __name__ == "__main__":
     #       that the confidence intervals afterward are totally within the bounds.
     #       Plot this as a histogram or KDE.
     fig, ax = plt.subplots()
+    results = []
     for i, sampler in enumerate(Sampler):
         area = np.load(RESULTS_ROOT / f"{sampler}_measured_area.npy")
         sample_size = np.load(RESULTS_ROOT / f"{sampler}_sample_size.npy")
@@ -97,12 +99,18 @@ if __name__ == "__main__":
         min_convergent_sample_size[mask] = sample_size[min_convergent_idx[mask]]
         min_convergent_sample_size[~mask] = np.nan
 
-        print(min_convergent_sample_size)
+        results.append(min_convergent_sample_size)
 
-        sns.histplot(min_convergent_sample_size, stat="density", ax=ax, alpha=0.5)
+        # sns.histplot(min_convergent_sample_size, stat="density", ax=ax, alpha=0.5)
         # sns.kdeplot(min_convergent_sample_size, fill=True, ax=ax, alpha=0.5)
 
-    ax.set_xlim(0, metadata["max_samples"])
+    # sns.histplot(
+    #     results, stat="density", binwidth=2000, common_bins=False, ax=ax, alpha=0.3
+    # )
+    sns.boxplot(results, ax=ax)
+    sns.swarmplot(data=results, color="k", size=3, ax=ax)
+
+    # ax.set_xlim(0, metadata["max_samples"])
     ax.set_xlabel("Minimum convergent sample size")
     ax.set_ylabel("Probability density")
     fig.legend(Sampler)
