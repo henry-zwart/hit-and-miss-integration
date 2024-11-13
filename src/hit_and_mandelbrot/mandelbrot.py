@@ -29,8 +29,8 @@ def est_area(
     assert (samples is not None) or not any((n_samples is None, sampler is None))
 
     if samples is not None:
-        n_samples = samples.c.shape[0]
-        repeats = samples.c.shape[1]
+        repeats = samples.c.shape[0]
+        n_samples = samples.c.shape[1]
 
     if not quiet:
         print("Running Mandelbrot area estimation:")
