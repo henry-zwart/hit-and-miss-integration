@@ -38,9 +38,8 @@ def plot_shape_convergence():
     axes[0].set_xlim(1, None)
     axes[0].set_yscale("log")
     axes[0].set_ylabel("Relative change")
-    axes[0].set_title("Percentage relative change from A(i-1) -> A(i)")
-    axes[0].spines["right"].set_visible(False)
-    axes[0].spines["top"].set_visible(False)
+    # axes[0].spines["right"].set_visible(False)
+    # axes[0].spines["top"].set_visible(False)
 
     # Scatterplot of the estimated area for each of the tested i's, with confidence intervals
     axes[1].scatter(iterations, area_cis.mean(axis=1), s=10)
@@ -59,12 +58,11 @@ def plot_shape_convergence():
     )
 
     # Make plot pretty
-    axes[1].set_ylabel("Estimated area")
+    axes[1].set_ylabel("Estimated area of Mandelbrot set")
     axes[1].set_ylim(1, None)
-    axes[1].set_xlabel("Iterations")
-    axes[1].set_title("Convergence of A(i)")
-    axes[1].spines["right"].set_visible(False)
-    axes[1].spines["top"].set_visible(False)
+    axes[1].set_xlabel("Number of iterations")
+    # axes[1].spines["right"].set_visible(False)
+    # axes[1].spines["top"].set_visible(False)
 
     # Add zoomed-in section to show area after convergence
 
