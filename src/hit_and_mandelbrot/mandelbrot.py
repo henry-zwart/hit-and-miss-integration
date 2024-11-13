@@ -21,7 +21,7 @@ class Sampler(StrEnum):
     RANDOM = "random"
     LHS = "lhs"
     ORTHO = "ortho"
-    IMPROVED = "improved"
+    SHADOW = "shadow"
 
 
 @dataclass
@@ -77,18 +77,17 @@ def est_outer_area(
     return exp_outer_area
 
 
-def sample_improved(
+def sample_shadow(
     outer_xmin,
     outer_xmax,
     outer_ymin,
     outer_ymax,
     n_samples,
     repeats,
-    approx_iters=3,
+    approx_iters=4,
     quiet=False,
 ):
     OUTER_SAMPLE_SIZE = 131**2
-    # OUTER_SAMPLE_SIZE = 47**2
     outer_area = est_outer_area(
         OUTER_SAMPLE_SIZE,
         approx_iters,
@@ -104,15 +103,16 @@ def sample_improved(
         repeat_samples = []
         while (remaining := n_samples - len(repeat_samples)) > 0:
             # Sample points uniformly on rectangle
-            print(remaining)
-            samples = sample_complex_uniform(remaining, repeats=1, quiet=True).c
+            samples = sample_complex_uniform(
+                int(remaining * 2), repeats=1, quiet=True
+            ).c
 
             # Filter out any which aren't hits on the outer shape
             outer_hits = calculate_sample_hits(samples, approx_iters)
             reduced_samples = samples[outer_hits]
 
             # Add the remaining ones to our list of samples
-            repeat_samples.extend(reduced_samples)
+            repeat_samples.extend(reduced_samples[:remaining])
         collected_samples.append(repeat_samples)
     collected_samples = np.array(collected_samples)
 
@@ -136,7 +136,7 @@ def sample_complex_uniform(
     if i_min > i_max:
         i_min, i_max = i_max, i_min
 
-    if method not in ("adaptive", "improved"):
+    if method not in ("adaptive", "shadow"):
         space_vol = (r_max - r_min) * (i_max - i_min)
 
     match method:
@@ -166,8 +166,8 @@ def sample_complex_uniform(
                 strength=2,
                 quiet=quiet,
             )
-        case Sampler.IMPROVED:
-            samples, space_vol = sample_improved(
+        case Sampler.SHADOW:
+            samples, space_vol = sample_shadow(
                 r_min,
                 r_max,
                 i_min,
