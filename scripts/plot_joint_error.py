@@ -20,7 +20,7 @@ if __name__ == "__main__":
 
     # Plot heatmap / contour for error given sample size and iters
     fig, ax = plt.subplots(2)
-    iteration_numbers = np.arange(metadata["max_iterations"] + 1)
+    iteration_numbers = metadata["iterations"]
     sample_sizes = np.arange(0, metadata["max_samples"], 100)
     Samples, Iters = np.meshgrid(sample_sizes, iteration_numbers)
     Error = expected_area[:, ::100] - 1.506

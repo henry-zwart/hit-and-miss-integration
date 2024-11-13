@@ -16,7 +16,13 @@ JOINT_CONVERGENCE_DATA = $(patsubst %, data/joint_convergence/%, $(JOINT_CONVERG
 JOINT_ERROR_FIGURE_NAMES = error_contour.png error_hist.png
 JOINT_ERROR_FIGURES = $(patsubst %, figures/joint_error/%, $(JOINT_ERROR_FIGURE_NAMES))
 
-FIGURES = $(MANDELBROT_FIGURES) $(SHAPE_CONVERGENCE_FIGURES) $(LIMIT_CONVERGENCE_FIGURES) $(JOINT_ERROR_FIGURES)
+SAMPLERS = random lhs ortho
+SAMPLE_CONVERGENCE_FIGURE_NAMES = area.png convergent_samplesize_dist.png
+SAMPLE_CONVERGENCE_FIGURES = $(patsubst %, figures/sample_convergence/%, $(SAMPLE_CONVERGENCE_FIGURE_NAMES))
+SAMPLE_CONVERGENCE_DATA_NAMES = metadata.json $(patsubst %, %_measured_area.npy, $(SAMPLERS)) $(patsubst %, %_expected_area.npy, $(SAMPLERS)) $(patsubst %, %_ci.npy, $(SAMPLERS)) $(patsubst %, %_sample_size.npy, $(SAMPLERS))
+SAMPLE_CONVERGENCE_DATA = $(patsubst %, data/sample_convergence/%, $(SAMPLE_CONVERGENCE_DATA_NAMES))
+
+FIGURES = $(MANDELBROT_FIGURES) $(SHAPE_CONVERGENCE_FIGURES) $(LIMIT_CONVERGENCE_FIGURES) $(JOINT_ERROR_FIGURES) $(SAMPLE_CONVERGENCE_FIGURES)
 
 # all: $(SHAPE_CONVERGENCE_DATA)
 all: $(FIGURES)
@@ -35,20 +41,27 @@ $(JOINT_ERROR_FIGURES) &: scripts/plot_joint_error.py $(JOINT_CONVERGENCE_DATA)
 $(MANDELBROT_FIGURES) &: scripts/plot_mandelbrot.py $(MANDELBROT_DATA)
 	uv run $<
 
+$(SAMPLE_CONVERGENCE_FIGURES) &: scripts/plot_sample_convergence.py $(SAMPLE_CONVERGENCE_DATA)
+	uv run $<
+
 $(FIGURES_DIR):
 	mkdir -p $@
 
 $(SHAPE_CONVERGENCE_DATA) &: scripts/measure_shape_convergence.py | $(DATA_DIR)
 	uv run $<
 
-$(JOINT_CONVERGENCE_DATA) &: scripts/measure_joint_convergence.py src/hit_and_mandelbrot/mandelbrot.py | $(DATA_DIR)
+$(JOINT_CONVERGENCE_DATA) &: scripts/measure_joint_convergence.py | $(DATA_DIR)
 	uv run $<
 
 $(MANDELBROT_DATA) &: scripts/deterministic_mandelbrot.py | $(DATA_DIR)
 	uv run $<
 
+$(SAMPLE_CONVERGENCE_DATA) &: scripts/measure_sample_convergence.py $(SHAPE_CONVERGENCE_DATA)
+	uv run $<
+
 $(DATA_DIR):
 	mkdir -p $@
+
 
 .PHONY: clean
 clean:

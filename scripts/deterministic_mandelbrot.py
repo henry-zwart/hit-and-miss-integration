@@ -20,8 +20,8 @@ if __name__ == "__main__":
 
     hits = np.zeros((len(ITERATIONS), len(c)), dtype=bool)
     for i, iters in enumerate(ITERATIONS):
-        # function expects a second dimension for 'repeats'. Mock this.
-        hits[i] = calculate_sample_hits(c[:, None], iters)[:, 0]
+        # function expects a second dimension for 'repeats'. Mock this extra dim.
+        hits[i] = calculate_sample_hits(c[None, :], iters)[0]
 
     np.save(RESULTS_ROOT / "hits.npy", hits)
 
