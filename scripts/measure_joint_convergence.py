@@ -3,8 +3,7 @@ from pathlib import Path
 
 import numpy as np
 
-from hit_and_mandelbrot.mandelbrot import est_area
-from hit_and_mandelbrot.sampling import Sampler
+from hit_and_mandelbrot.mandelbrot import Sampler, est_area
 from hit_and_mandelbrot.statistics import mean_and_ci
 
 np.random.seed(39)

@@ -5,8 +5,7 @@ import numpy as np
 from sympy import sieve
 from tqdm import tqdm
 
-from hit_and_mandelbrot.mandelbrot import est_area
-from hit_and_mandelbrot.sampling import Sampler
+from hit_and_mandelbrot.mandelbrot import Sampler, est_area
 from hit_and_mandelbrot.statistics import mean_and_ci
 
 if __name__ == "__main__":
@@ -20,6 +19,7 @@ if __name__ == "__main__":
         Sampler.RANDOM: len(sample_sizes) - 1,
         Sampler.LHS: len(sample_sizes) - 1,
         Sampler.ORTHO: np.argmax(sample_sizes >= 139**2),
+        Sampler.IMPROVED: np.argmax(sample_sizes >= 47**2),
     }
     REPEATS = 30
     z = 1.96
@@ -36,6 +36,8 @@ if __name__ == "__main__":
     # Calculate per-sample-size area and CI for each sampling algorithm
     with tqdm(total=sum(MAX_SAMPLES_IDX[sampler] + 1 for sampler in Sampler)) as pbar:
         for sampler in Sampler:
+            if sampler != Sampler.IMPROVED:
+                continue
             # We don't sample the large sample sizes for orthog, since its too expensive
             iter_sample_sizes = sample_sizes[: MAX_SAMPLES_IDX[sampler]]
             measured_areas = np.empty(

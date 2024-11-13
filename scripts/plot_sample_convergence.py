@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 
-from hit_and_mandelbrot.sampling import Sampler
+from hit_and_mandelbrot import Sampler
 
 
 def final_true(mask, axis, invalid_val=-1):
@@ -32,7 +32,7 @@ if __name__ == "__main__":
     with (Path("data") / "shape_convergence" / "metadata.json").open("r") as f:
         target_area = json.load(f)["min_convergent_area"]
 
-    fig, axes = plt.subplots(3, sharey=True, sharex=True)
+    fig, axes = plt.subplots(len(Sampler), sharey=True, sharex=True)
 
     for ax in axes:
         ax.axhline(target_area, color="grey", linewidth=1)
@@ -50,11 +50,7 @@ if __name__ == "__main__":
         )
 
     # For each sampling method, plot the lower and upper confidence interval, at each sample size
-    colours = {
-        "random": "blue",
-        "lhs": "orange",
-        "ortho": "green",
-    }
+    colours = {"random": "blue", "lhs": "orange", "ortho": "green", "improved": "red"}
     for i, sampler in enumerate(Sampler):
         area = np.load(RESULTS_ROOT / f"{sampler}_expected_area.npy")[MIN_SAMPLES:]
 

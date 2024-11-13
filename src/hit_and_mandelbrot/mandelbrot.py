@@ -1,6 +1,13 @@
 import time
+from dataclasses import dataclass
+from enum import StrEnum
+from functools import lru_cache
 
 import numpy as np
+from scipy.stats.qmc import LatinHypercube
+from tqdm import trange
+
+from hit_and_mandelbrot.statistics import mean_and_ci
 
 from .hits import (
     calculate_hits,
@@ -8,7 +15,176 @@ from .hits import (
     calculate_sample_hits,
     calculate_sample_iter_hits,
 )
-from .sampling import Sampler, Samples, sample_complex_uniform
+
+
+class Sampler(StrEnum):
+    RANDOM = "random"
+    LHS = "lhs"
+    ORTHO = "ortho"
+    IMPROVED = "improved"
+
+
+@dataclass
+class Samples:
+    real_lims: tuple[float, float]
+    imag_lims: tuple[float, float]
+    space_vol: float
+    c: np.array
+
+
+def sample_lhs(xmin, xmax, ymin, ymax, n, repeats, strength=1, quiet=False):
+    # Sample from [0,1)
+    lhs = LatinHypercube(d=2, strength=strength)
+    range_fn = range if quiet else trange
+    normalised_real_samples = np.stack([lhs.random(n) for _ in range_fn(repeats)])
+    np.random.shuffle(normalised_real_samples)
+
+    # Scale up to [xmin, xmax) and [ymin, ymax)
+    scaled_real_samples = normalised_real_samples
+    scaled_real_samples[..., 0] = scaled_real_samples[..., 0] * (xmax - xmin) + xmin
+    scaled_real_samples[..., 1] = scaled_real_samples[..., 1] * (ymax - ymin) + ymin
+
+    # Make the second component imaginary, and sum to get complex samples
+    complex_2d_samples = scaled_real_samples.astype(np.complex128)
+    complex_2d_samples[..., 1] *= 1.0j
+    complex_samples = complex_2d_samples.sum(axis=-1)
+    return complex_samples
+
+
+@lru_cache()
+def est_outer_area(
+    sample_size: int,
+    iterations: int,
+    repeats: int,
+    x_min: float,
+    x_max: float,
+    y_min: float,
+    y_max: float,
+):
+    area = est_area(
+        sample_size,
+        iterations=iterations,
+        repeats=repeats,
+        x_min=x_min,
+        x_max=x_max,
+        y_min=y_min,
+        y_max=y_max,
+        sampler=Sampler.ORTHO,
+        quiet=True,
+    )
+    exp_outer_area, outer_area_ci = mean_and_ci(area, z=2.326)
+    assert 100 * (outer_area_ci / exp_outer_area) < 0.1, "CI exceeds 0.1%"
+    return exp_outer_area
+
+
+def sample_improved(
+    outer_xmin,
+    outer_xmax,
+    outer_ymin,
+    outer_ymax,
+    n_samples,
+    repeats,
+    approx_iters=3,
+    quiet=False,
+):
+    OUTER_SAMPLE_SIZE = 131**2
+    # OUTER_SAMPLE_SIZE = 47**2
+    outer_area = est_outer_area(
+        OUTER_SAMPLE_SIZE,
+        approx_iters,
+        30,
+        outer_xmin,
+        outer_xmax,
+        outer_ymin,
+        outer_ymax,
+    )
+
+    collected_samples = []
+    for _ in range(repeats):
+        repeat_samples = []
+        while (remaining := n_samples - len(repeat_samples)) > 0:
+            # Sample points uniformly on rectangle
+            print(remaining)
+            samples = sample_complex_uniform(remaining, repeats=1, quiet=True).c
+
+            # Filter out any which aren't hits on the outer shape
+            outer_hits = calculate_sample_hits(samples, approx_iters)
+            reduced_samples = samples[outer_hits]
+
+            # Add the remaining ones to our list of samples
+            repeat_samples.extend(reduced_samples)
+        collected_samples.append(repeat_samples)
+    collected_samples = np.array(collected_samples)
+
+    return collected_samples, outer_area
+
+
+def sample_complex_uniform(
+    n_samples,
+    repeats,
+    r_min=-2,
+    r_max=2,
+    i_min=-2,
+    i_max=2,
+    method=Sampler.RANDOM,
+    quiet=False,
+    **kwargs,
+):
+    # Ensure coordinates are such that min <= max
+    if r_min > r_max:
+        r_min, r_max = r_max, r_min
+    if i_min > i_max:
+        i_min, i_max = i_max, i_min
+
+    if method not in ("adaptive", "improved"):
+        space_vol = (r_max - r_min) * (i_max - i_min)
+
+    match method:
+        case Sampler.RANDOM:
+            real_samples = np.random.uniform(r_min, r_max, (repeats, n_samples))
+            imag_samples = np.random.uniform(i_min, i_max, (repeats, n_samples)) * 1.0j
+            samples = real_samples + imag_samples
+        case Sampler.LHS:
+            samples = sample_lhs(
+                r_min,
+                r_max,
+                i_min,
+                i_max,
+                n_samples,
+                repeats,
+                strength=1,
+                quiet=quiet,
+            )
+        case Sampler.ORTHO:
+            samples = sample_lhs(
+                r_min,
+                r_max,
+                i_min,
+                i_max,
+                n_samples,
+                repeats,
+                strength=2,
+                quiet=quiet,
+            )
+        case Sampler.IMPROVED:
+            samples, space_vol = sample_improved(
+                r_min,
+                r_max,
+                i_min,
+                i_max,
+                n_samples,
+                repeats,
+                **kwargs,
+            )
+        case _:
+            raise ValueError(f"Unknown sampling method: {method}")
+
+    return Samples(
+        real_lims=(r_min, r_max),
+        imag_lims=(i_min, i_max),
+        space_vol=space_vol,
+        c=samples,
+    )
 
 
 def est_area(

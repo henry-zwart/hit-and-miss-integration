@@ -50,7 +50,7 @@ $(FIGURES_DIR):
 $(SHAPE_CONVERGENCE_DATA) &: scripts/measure_shape_convergence.py | $(DATA_DIR)
 	uv run $<
 
-$(JOINT_CONVERGENCE_DATA) &: scripts/measure_joint_convergence.py src/hit_and_mandelbrot/mandelbrot.py | $(DATA_DIR)
+$(JOINT_CONVERGENCE_DATA) &: scripts/measure_joint_convergence.py | $(DATA_DIR)
 	uv run $<
 
 $(MANDELBROT_DATA) &: scripts/deterministic_mandelbrot.py | $(DATA_DIR)
