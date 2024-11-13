@@ -74,15 +74,16 @@ if __name__ == "__main__":
     )
 
     # Plot error due to finite samples, with "infinite" iterations
-    ε_s = expected_area[-1, ...] - expected_area[-1, -1]
-    ε_s_lower = ε_s - confidence_interval[-1]
-    ε_s_upper = ε_s + confidence_interval[-1]
-    ax[1].plot(np.arange(MIN_SAMPLES, metadata["max_samples"]), ε_s[MIN_SAMPLES:])
-    ax[1].fill_between(
-        np.arange(MIN_SAMPLES, metadata["max_samples"]),
-        ε_s_lower[MIN_SAMPLES:],
-        ε_s_upper[MIN_SAMPLES:],
-        alpha=0.25,
-    )
+    for iters in (20, 60, 128):
+        ε_s = expected_area[iters, ...] - expected_area[iters, -1]
+        ε_s_lower = ε_s - confidence_interval[iters]
+        ε_s_upper = ε_s + confidence_interval[iters]
+        ax[1].plot(np.arange(MIN_SAMPLES, metadata["max_samples"]), ε_s[MIN_SAMPLES:])
+        ax[1].fill_between(
+            np.arange(MIN_SAMPLES, metadata["max_samples"]),
+            ε_s_lower[MIN_SAMPLES:],
+            ε_s_upper[MIN_SAMPLES:],
+            alpha=0.25,
+        )
 
     fig.savefig(FIGURES_ROOT / "limit_error.png", dpi=500, bbox_inches="tight")
