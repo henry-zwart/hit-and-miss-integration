@@ -13,13 +13,13 @@ if __name__ == "__main__":
     RESULTS_ROOT = Path("data") / "sample_convergence"
     RESULTS_ROOT.mkdir(parents=True, exist_ok=True)
 
-    sieve.extend(311)
+    sieve.extend(367)
     primes = np.array(sieve._list)
     sample_sizes = primes**2
     MAX_SAMPLES_IDX = {
         Sampler.RANDOM: len(sample_sizes) - 1,
         Sampler.LHS: len(sample_sizes) - 1,
-        Sampler.ORTHO: np.argmax(sample_sizes >= 101**2),
+        Sampler.ORTHO: np.argmax(sample_sizes >= 139**2),
     }
     REPEATS = 30
     z = 1.96
@@ -58,7 +58,7 @@ if __name__ == "__main__":
                 pbar.update()
             np.save(RESULTS_ROOT / f"{sampler}_measured_area.npy", measured_areas)
             np.save(RESULTS_ROOT / f"{sampler}_expected_area.npy", expected_areas)
-            np.save(RESULTS_ROOT / f"{sampler}_ci.npy", cis)
+            np.save(RESULTS_ROOT / f"{sampler}_ci.npy", cis * np.sqrt(REPEATS))
             np.save(RESULTS_ROOT / f"{sampler}_sample_size.npy", iter_sample_sizes)
 
     metadata = {
