@@ -1,4 +1,5 @@
 import json
+import random
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -6,6 +7,7 @@ import numpy as np
 
 
 def plot_shape_convergence():
+    # Load experiment data and prepare figures directory for plots
     RESULTS_ROOT = Path("data") / "shape_convergence"
     FIGURES_ROOT = Path("figures") / "shape_convergence"
     FIGURES_ROOT.mkdir(parents=True, exist_ok=True)
@@ -22,13 +24,19 @@ def plot_shape_convergence():
     min_convergent_area = metadata["min_convergent_area"]
     min_convergent_iters = metadata["min_convergent_iters"]
 
+    # Two stacked plots:
+    #   1. Relative change in estimate as iterations increase
+    #   2. Estimated area for varying iterations
+    #       2b. (Inset): Zoom in on the area estimates after convergence to show CI's
     fig, axes = plt.subplots(2, sharex=True)
 
     # Scatterplot of the relative change in estimated area, with confidence intervals
     axes[0].scatter(iterations, 100 * relchange_cis.mean(axis=1), s=10, marker="x")
     axes[0].vlines(iterations, 100 * relchange_cis[:, 0], 100 * relchange_cis[:, 1])
 
-    # Horizontal line at threshold, vertical red line at first i which achieves convergence
+    # Add:
+    #   - Horizontal red line at threshold,
+    #   - Vertical line at first iteration which achieves convergence
     axes[0].axhline(
         y=100 * convergence_threshold, color="red", linewidth=0.5, linestyle="dashed"
     )
@@ -38,18 +46,18 @@ def plot_shape_convergence():
     axes[0].set_xlim(1, None)
     axes[0].set_yscale("log")
     axes[0].set_ylabel("Relative change")
-    # axes[0].spines["right"].set_visible(False)
-    # axes[0].spines["top"].set_visible(False)
 
-    # Scatterplot of the estimated area for each of the tested i's, with confidence intervals
+    # Scatterplot of the estimated area for each of the tested i's
     axes[1].scatter(iterations, area_cis.mean(axis=1), s=10)
     axes[1].vlines(iterations, area_cis[:, 0], area_cis[:, 1])
 
-    # Horizontal red line at minimum convergent area
+    # Add horizontal red line at minimum convergent area
     axes[1].axhline(
         area_cis[min_convergent_idx, 1], linestyle="dashed", color="red", linewidth=0.5
     )
     axes[1].axvline(min_convergent_iters, color="grey", linewidth=0.5)
+
+    # Write the minimum convergent area to the right of the plot
     axes[1].text(
         x=1.01,
         y=min_convergent_area,
@@ -64,12 +72,8 @@ def plot_shape_convergence():
     axes[1].set_ylabel("Estimated area of Mandelbrot set")
     axes[1].set_ylim(1, None)
     axes[1].set_xlabel("Number of iterations")
-    # axes[1].spines["right"].set_visible(False)
-    # axes[1].spines["top"].set_visible(False)
 
     # Add zoomed-in section to show area after convergence
-
-    # zoom_ax = fig.add_axes([0.44, 0.25, 0.4, 0.16])
     zoom_ax = axes[1].inset_axes(
         [0.4, 0.37, 0.5, 0.5],
         xlim=(min_convergent_iters - 50, iterations[-1] + 50),
@@ -105,4 +109,8 @@ def plot_shape_convergence():
 
 
 if __name__ == "__main__":
+    # Set random seeds
+    np.random.seed(42)
+    random.seed(42)
+
     plot_shape_convergence()

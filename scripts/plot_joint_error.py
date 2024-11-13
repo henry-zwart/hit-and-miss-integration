@@ -1,13 +1,20 @@
 import json
+import random
 from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
 
 if __name__ == "__main__":
+    # Set random seeds
+    np.random.seed(42)
+    random.seed(42)
+
+    # Parameters
     MIN_ITERATIONS = 20
     MIN_SAMPLES = 10_000
 
+    # Load experiment data, prepare figures directory
     RESULTS_ROOT = Path("data") / "joint_convergence"
     FIGURES_ROOT = Path("figures") / "joint_error"
     FIGURES_ROOT.mkdir(parents=True, exist_ok=True)

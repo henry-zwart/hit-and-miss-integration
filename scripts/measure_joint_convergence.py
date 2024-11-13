@@ -1,4 +1,5 @@
 import json
+import random
 from pathlib import Path
 
 import numpy as np
@@ -6,16 +7,18 @@ import numpy as np
 from hit_and_mandelbrot.mandelbrot import Sampler, est_area
 from hit_and_mandelbrot.statistics import mean_and_ci
 
-np.random.seed(39)
-
-
 if __name__ == "__main__":
+    # Set random seeds
+    np.random.seed(42)
+    random.seed(42)
+
+    # Establish directory to write results
     RESULTS_ROOT = Path("data") / "joint_convergence"
     RESULTS_ROOT.mkdir(parents=True, exist_ok=True)
-
     with (Path("data") / "shape_convergence/metadata.json").open("r") as f:
         convergent_iters = json.load(f)["min_convergent_iters"]
 
+    # Parameters
     n_samples = 100000
     convergent_iters = 256
     iterations = np.arange(
@@ -26,6 +29,7 @@ if __name__ == "__main__":
     ddof = 1
     z = 1.96
 
+    # Calculate per-sample-size, per-iteration area of Mandelbrot
     area = est_area(
         n_samples,
         iterations,
@@ -33,12 +37,13 @@ if __name__ == "__main__":
         sampler=sampler,
         per_sample=True,
     )
-    print(area.shape)
+
+    # Calculate expected area and CI for each iteration and sample-size
     expected_area, confidence_interval = mean_and_ci(area, ddof=ddof, z=z)
 
+    # Save results and experiment metadata
     np.save(RESULTS_ROOT / "expected_area.npy", expected_area)
     np.save(RESULTS_ROOT / "confidence_intervals.npy", confidence_interval)
-
     metadata = {
         "max_samples": n_samples,
         "iterations": iterations.tolist(),
@@ -47,6 +52,5 @@ if __name__ == "__main__":
         "ddof": ddof,
         "z": z,
     }
-
     with (RESULTS_ROOT / "metadata.json").open("w") as f:
         json.dump(metadata, f)

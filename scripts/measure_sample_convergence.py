@@ -1,4 +1,5 @@
 import json
+import random
 from pathlib import Path
 
 import numpy as np
@@ -9,9 +10,15 @@ from hit_and_mandelbrot.mandelbrot import Sampler, est_area
 from hit_and_mandelbrot.statistics import mean_and_ci
 
 if __name__ == "__main__":
+    # Random seeds
+    np.random.seed(42)
+    random.seed(42)
+
+    # Establish directory to write results
     RESULTS_ROOT = Path("data") / "sample_convergence"
     RESULTS_ROOT.mkdir(parents=True, exist_ok=True)
 
+    # Parameters
     sieve.extend(367)
     primes = np.array(sieve._list)
     sample_sizes = primes**2
@@ -21,7 +28,6 @@ if __name__ == "__main__":
         Sampler.ORTHO: np.argmax(sample_sizes >= 139**2),
         Sampler.SHADOW: len(sample_sizes),
     }
-
     REPEATS = 30
     z = 1.96
     ddof = 1
@@ -29,16 +35,11 @@ if __name__ == "__main__":
     # Load data from the iteration convergence experiment
     SHAPE_CONVERGENCE_RESULTS_ROOT = Path("data") / "shape_convergence"
     with (SHAPE_CONVERGENCE_RESULTS_ROOT / "metadata.json").open("r") as f:
-        metadata = json.load(f)
-
-    # Determine the minimum iteration number we recorded as "convergent"
-    min_convergent_iters = metadata["min_convergent_iters"]
+        min_convergent_iters = json.load(f)["min_convergent_iters"]
 
     # Calculate per-sample-size area and CI for each sampling algorithm
     with tqdm(total=sum(MAX_SAMPLES_IDX[sampler] for sampler in Sampler)) as pbar:
         for sampler in Sampler:
-            if sampler != Sampler.SHADOW:
-                continue
             pbar.set_description(f"{sampler.title()} sampler")
             iter_sample_sizes = sample_sizes[: MAX_SAMPLES_IDX[sampler]]
             measured_areas = np.empty(
@@ -59,11 +60,14 @@ if __name__ == "__main__":
                 measured_areas[i] = area
                 cis[i] = ci
                 pbar.update()
+
+            # Save per-sampler results
             np.save(RESULTS_ROOT / f"{sampler}_measured_area.npy", measured_areas)
             np.save(RESULTS_ROOT / f"{sampler}_expected_area.npy", expected_areas)
             np.save(RESULTS_ROOT / f"{sampler}_ci.npy", cis * np.sqrt(REPEATS))
             np.save(RESULTS_ROOT / f"{sampler}_sample_size.npy", iter_sample_sizes)
 
+    # Write out experiment metadata
     metadata = {
         "max_samples": int(sample_sizes[-1]),
         "repeats": REPEATS,

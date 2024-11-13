@@ -1,15 +1,20 @@
 import json
+import random
 from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
 
 if __name__ == "__main__":
+    # Set random seeds
+    np.random.seed(42)
+    random.seed(42)
+
     # Set parameters for plotting
     MIN_ITERATIONS = 2
     MIN_SAMPLES = 10_000
 
-    # Results and figure directory paths
+    # Load experiment data and prepare figure directory for plots
     RESULTS_ROOT = Path("data") / "joint_convergence"
     FIGURES_ROOT = Path("figures") / "limit_convergence"
     FIGURES_ROOT.mkdir(parents=True, exist_ok=True)
@@ -17,7 +22,6 @@ if __name__ == "__main__":
     with (RESULTS_ROOT / "metadata.json").open("r") as f:
         metadata = json.load(f)
 
-    # Load the per-iteration expected area and confidence intervals
     expected_area = np.load(RESULTS_ROOT / "expected_area.npy")
     confidence_interval = np.load(RESULTS_ROOT / "confidence_intervals.npy")
 
