@@ -119,7 +119,7 @@ if __name__ == "__main__":
     RESULTS_ROOT = Path("data") / "shape_convergence"
     RESULTS_ROOT.mkdir(parents=True, exist_ok=True)
 
-    repeats = 3
+    repeats = 30
     n_samples = 281**2
     threshold = 0.1 / 100
     z = 1.96
