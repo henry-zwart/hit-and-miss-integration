@@ -16,11 +16,12 @@ if __name__ == "__main__":
     primes = np.array(sieve._list)
     sample_sizes = primes**2
     MAX_SAMPLES_IDX = {
-        Sampler.RANDOM: len(sample_sizes) - 1,
-        Sampler.LHS: len(sample_sizes) - 1,
+        Sampler.RANDOM: len(sample_sizes),
+        Sampler.LHS: len(sample_sizes),
         Sampler.ORTHO: np.argmax(sample_sizes >= 139**2),
-        Sampler.IMPROVED: np.argmax(sample_sizes >= 47**2),
+        Sampler.SHADOW: len(sample_sizes),
     }
+
     REPEATS = 30
     z = 1.96
     ddof = 1
@@ -34,11 +35,11 @@ if __name__ == "__main__":
     min_convergent_iters = metadata["min_convergent_iters"]
 
     # Calculate per-sample-size area and CI for each sampling algorithm
-    with tqdm(total=sum(MAX_SAMPLES_IDX[sampler] + 1 for sampler in Sampler)) as pbar:
+    with tqdm(total=sum(MAX_SAMPLES_IDX[sampler] for sampler in Sampler)) as pbar:
         for sampler in Sampler:
-            if sampler != Sampler.IMPROVED:
+            if sampler != Sampler.SHADOW:
                 continue
-            # We don't sample the large sample sizes for orthog, since its too expensive
+            pbar.set_description(f"{sampler.title()} sampler")
             iter_sample_sizes = sample_sizes[: MAX_SAMPLES_IDX[sampler]]
             measured_areas = np.empty(
                 (len(iter_sample_sizes), REPEATS), dtype=np.float64

@@ -50,7 +50,7 @@ if __name__ == "__main__":
         )
 
     # For each sampling method, plot the lower and upper confidence interval, at each sample size
-    colours = {"random": "blue", "lhs": "orange", "ortho": "green", "improved": "red"}
+    colours = {"random": "blue", "lhs": "orange", "ortho": "green", "shadow": "red"}
     for i, sampler in enumerate(Sampler):
         area = np.load(RESULTS_ROOT / f"{sampler}_expected_area.npy")[MIN_SAMPLES:]
 

@@ -4,7 +4,7 @@ from pathlib import Path
 import numpy as np
 
 from hit_and_mandelbrot import Sampler, est_area, mean_and_ci
-from hit_and_mandelbrot.sampling import sample_complex_uniform
+from hit_and_mandelbrot.mandelbrot import sample_complex_uniform
 
 
 def rel_change(i, samples, cache, z=1.96, ddof=1):
