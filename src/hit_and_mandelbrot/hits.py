@@ -19,6 +19,7 @@ def calculate_sample_hits(c: np.ndarray, iterations: int):
     """
     z = c.copy()
     bounded = np.abs(c) <= 2
+
     for _ in range(1, iterations + 1):
         for r in range(c.shape[0]):
             for s in range(c.shape[1]):
@@ -31,43 +32,54 @@ def calculate_sample_hits(c: np.ndarray, iterations: int):
 
 
 @numba.njit
-def calculate_iter_hits(c: np.ndarray, iterations: int):
+def calculate_iter_hits(c: np.ndarray, iterations: np.ndarray):
     """
     Calculate total hits per-iteration.
     Returns: Integer array
     """
+    record_iter_idx = 0
+    max_iters = iterations[-1]
+
     z = c.copy()
     bounded = np.abs(c) <= 2
 
-    # Initialise hits array, calculate hits at iter 0
-    hits = np.zeros((c.shape[0], iterations + 1), dtype=np.int64)
-    hits[:, 0] = bounded.sum(axis=-1)
+    # Initialise hits array, calculate hits at iter 0 if in iters array
+    hits = np.zeros((c.shape[0], iterations.shape[0]), dtype=np.int64)
+    if iterations[record_iter_idx] == 0:
+        hits[:, 0] = bounded.sum(axis=-1)
+        record_iter_idx += 1
 
-    for i in range(1, iterations + 1):
+    for i in range(1, max_iters + 1):
         for r in range(c.shape[0]):
             for s in range(c.shape[1]):
                 if bounded[r, s]:
                     z[r, s] = z[r, s] ** 2 + c[r, s]
                     if np.abs(z[r, s]) > 2:
                         bounded[r, s] = False
-        hits[:, i] = bounded.sum(axis=-1)
+
+        # If this is an iteration we want to record, record the hits
+        if i == iterations[record_iter_idx]:
+            hits[:, i] = bounded.sum(axis=-1)
+            record_iter_idx += 1
 
     return hits
 
 
 @numba.njit
-def calculate_sample_iter_hits(c: np.ndarray, iterations: int):
+def calculate_sample_iter_hits(c: np.ndarray, iterations: np.ndarray):
     """
     For each iteration and each sample, determines whether the sample is a hit.
     Returns: 3D bool array
     """
+    max_iters = iterations[-1]
+
     z = c.copy()
 
     # Keep a boolean record of the samples which are still within bounds
     bounded = np.abs(c) <= 2
 
     # Record the iteration at which each point exceeds threshold
-    unbounded_at = np.full(c.shape, iterations + 1, dtype=np.int64)
+    unbounded_at = np.full(c.shape, max_iters + 1, dtype=np.int64)
 
     # Initialise the record for samples which are unbounded at iteration 0
     for r in range(c.shape[0]):
@@ -76,7 +88,7 @@ def calculate_sample_iter_hits(c: np.ndarray, iterations: int):
                 unbounded_at[r, s] = 0
 
     # For each iteration,
-    for i in range(1, iterations + 1):
+    for i in range(1, max_iters + 1):
         # ... in each repeat of the estimation:
         for r in range(c.shape[0]):
             # ... for each sample,
@@ -92,10 +104,10 @@ def calculate_sample_iter_hits(c: np.ndarray, iterations: int):
                         unbounded_at[r, s] = i
 
     # Prepare boolean array to say which samples were included, and at which iterations
-    hits = np.zeros((c.shape[0], iterations + 1, c.shape[1]), dtype=np.bool)
+    hits = np.zeros((c.shape[0], iterations.shape[0], c.shape[1]), dtype=np.bool)
     for r in range(c.shape[0]):
-        for i in range(iterations + 1):
+        for iter_idx, iters in enumerate(iterations):
             for s in range(c.shape[1]):
-                hits[r, i, s] = unbounded_at[r, s] > i
+                hits[r, iter_idx, s] = unbounded_at[r, s] > iters
 
     return hits

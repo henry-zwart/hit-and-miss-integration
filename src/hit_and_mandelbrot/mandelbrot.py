@@ -188,8 +188,8 @@ def sample_complex_uniform(
 
 
 def est_area(
-    n_samples: int | None = None,
-    iterations: int | None = None,
+    n_samples: int | np.ndarray | None = None,
+    iterations: int | np.ndarray = 64,
     x_min: float = -2.0,
     x_max: float = 2.0,
     y_min: float = -2.0,
@@ -198,20 +198,21 @@ def est_area(
     sampler: Sampler | None = None,
     samples: Samples | None = None,
     per_sample: bool = False,
-    per_iter: bool = False,
     quiet: bool = False,
 ):
-    # x_min, x_max, y_min, y_max, v = _prepare_params(x_min, x_max, y_min, y_max)
-    assert (samples is not None) or not any((n_samples is None, sampler is None))
+    if all((x is None for x in (samples, n_samples, sampler))):
+        raise ValueError(
+            "Either `samples` or `n_samples` & `sampler` must be specified."
+        )
 
     if samples is not None:
         repeats = samples.c.shape[0]
-        n_samples = samples.c.shape[1]
+        n_samples = samples.c.shape[1] + 1
 
     if not quiet:
         print("Running Mandelbrot area estimation:")
         print(
-            f"\tInterval (xmin, xmax)x(ymin, ymax): ({x_min:.2f}, {x_max:.2f})x({y_min:.2f}, {y_max:.2f})"
+            f"\tInterval: x: ({x_min:.2f}, {x_max:.2f}), y: ({y_min:.2f}, {y_max:.2f})"
         )
         print(f"\tIterations: {iterations}")
         print(f"\tSample size: {n_samples}")
@@ -233,23 +234,31 @@ def est_area(
     else:
         print("Samples provided, ignoring sampling parameters.")
 
-    match (per_sample, per_iter):
-        case (False, False):  # Just record the final proportion
+    match (per_sample, iterations):
+        case (False, int()):  # Just record the final proportion
             # Divide number of hits by number of samples
             hits_count = calculate_hits(samples.c, iterations)
             proportion_hits = hits_count / n_samples
-        case (True, False):  # Proportion per individual sample
+        case (True, int()):  # Proportion per individual sample
             # Calculate cumulative sum over samples, divide by 1 + idx to get
             #   per-sample proportion
             hits = calculate_sample_hits(samples.c, iterations)
             hits_count = hits.cumsum(axis=-1)
             proportion_hits = hits_count / np.arange(1, samples.c.shape[1] + 1)
-        case (False, True):  # Proportion per-iteration
+        case (False, np.ndarray()):  # Proportion per-iteration
             # Divide count by number of samples
+            if len(iterations.shape) != 1:
+                raise ValueError("Iterations array must be 1D")
+            if iterations.shape[0] == 0:
+                raise ValueError("Iterations array must be nonempty")
             hits_count = calculate_iter_hits(samples.c, iterations)
             proportion_hits = hits_count / n_samples
-        case (True, True):  # Proportion per-iteration and per-sample
+        case (True, np.ndarray()):  # Proportion per-iteration and per-sample
             # As in (True, False) case
+            if len(iterations.shape) != 1:
+                raise ValueError("Iterations array must be 1D")
+            if iterations.shape[0] == 0:
+                raise ValueError("Iterations array must be nonempty")
             hits = calculate_sample_iter_hits(samples.c, iterations)
             hits_count = hits.cumsum(axis=-1)
             proportion_hits = hits_count / np.arange(1, samples.c.shape[1] + 1)
