@@ -1,4 +1,5 @@
 import json
+import random
 from pathlib import Path
 
 import numpy as np
@@ -77,6 +78,7 @@ def find_pow2_upper_bound(samples, threshold, cache, z=1.96, ddof=1):
 
 
 def minimal_convergence_iteration(samples, threshold, z, ddof):
+    """Measure convergence of A_i -> A_M using a binary search."""
     cache = {}
     tested_is, rc_cis, area_cis = find_pow2_upper_bound(
         samples, threshold, cache, z, ddof
@@ -116,9 +118,15 @@ def minimal_convergence_iteration(samples, threshold, z, ddof):
 
 
 if __name__ == "__main__":
+    # Set random seeds
+    np.random.seed(42)
+    random.seed(42)
+
+    # Establish directory to write results
     RESULTS_ROOT = Path("data") / "shape_convergence"
     RESULTS_ROOT.mkdir(parents=True, exist_ok=True)
 
+    # Parameters
     repeats = 30
     n_samples = 281**2
     threshold = 0.1 / 100
@@ -126,6 +134,7 @@ if __name__ == "__main__":
     ddof = 1
     sampler = Sampler.ORTHO
 
+    # Gather a large set of samples, which will be re-used for different iterations
     print(f"Sampling: {n_samples} from {sampler} sampler, with {repeats} repeats.")
     samples = sample_complex_uniform(
         n_samples=n_samples,
@@ -133,6 +142,7 @@ if __name__ == "__main__":
         method=sampler,
     )
 
+    # Run shape convergence experiments
     tested_is, rc_cis, area_cis = minimal_convergence_iteration(
         samples,
         threshold,
@@ -140,6 +150,7 @@ if __name__ == "__main__":
         ddof=ddof,
     )
 
+    # Save results and experiment metadata
     np.save(RESULTS_ROOT / "iterations.npy", tested_is)
     np.save(RESULTS_ROOT / "relchange_cis.npy", rc_cis)
     np.save(RESULTS_ROOT / "area_cis.npy", area_cis)

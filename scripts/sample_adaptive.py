@@ -1,8 +1,17 @@
+import random
+
+import numpy as np
+
 from hit_and_mandelbrot.mandelbrot import (
     adaptive_sampling,
 )
 
 if __name__ == "__main__":
+    # Set random seeds
+    np.random.seed(42)
+    random.seed(42)
+
+    # Parameters
     n_samples = 10_000
     iterations = 100
     threshold = 0.1

@@ -1,4 +1,5 @@
 import json
+import random
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -19,9 +20,15 @@ def final_true(mask, axis, invalid_val=-1):
 
 
 if __name__ == "__main__":
+    # Set random seeds
+    np.random.seed(42)
+    random.seed(42)
+
+    # Parameters
     MIN_SAMPLES = 20
     ABS_THRESHOLD = 1.5 / 100
 
+    # Load experiment data and prepare figure directory for plots
     RESULTS_ROOT = Path("data") / "sample_convergence"
     FIGURES_ROOT = Path("figures") / "sample_convergence"
     FIGURES_ROOT.mkdir(parents=True, exist_ok=True)
@@ -32,8 +39,12 @@ if __name__ == "__main__":
     with (Path("data") / "shape_convergence" / "metadata.json").open("r") as f:
         target_area = json.load(f)["min_convergent_area"]
 
+    # Show convergence behaviour of different samplers.
+    #   - Plot two sample std. for each sampler, for varying sample sizes.
+    #   - Show the target (~A_M) area and 1.5% error thresholds for comparison.
     fig, axes = plt.subplots(len(Sampler), sharey=True, sharex=True)
 
+    # True area
     for ax in axes:
         ax.axhline(target_area, color="grey", linewidth=1)
         ax.axhline(
@@ -49,11 +60,10 @@ if __name__ == "__main__":
             linewidth=1,
         )
 
-    # For each sampling method, plot the lower and upper confidence interval, at each sample size
+    # 2 sample standard deviations
     colours = {"random": "blue", "lhs": "orange", "ortho": "green", "shadow": "red"}
     for i, sampler in enumerate(Sampler):
         area = np.load(RESULTS_ROOT / f"{sampler}_expected_area.npy")[MIN_SAMPLES:]
-
         ci = np.load(RESULTS_ROOT / f"{sampler}_ci.npy")[MIN_SAMPLES:]
         sample_size = np.load(RESULTS_ROOT / f"{sampler}_sample_size.npy")[MIN_SAMPLES:]
         lower = area - ci
@@ -70,9 +80,10 @@ if __name__ == "__main__":
     fig.savefig(FIGURES_ROOT / "area.png", dpi=700)
 
     # Plot distribution over samples-till-convergence.
-    # i.e. for each repeat, on each sampling method, record the number of sampling such
-    #       that the confidence intervals afterward are totally within the bounds.
-    #       Plot this as a histogram or KDE.
+    # i.e. for each repeat, on each sampling method, record the number of samples such
+    #       that for all subsequent sample sizes, the estimate is totally within the
+    #       1.5% error bounds.
+    # Plot this as a box plot, with convergent sample sizes overlaid.
     fig, ax = plt.subplots()
     results = []
     for i, sampler in enumerate(Sampler):
@@ -97,18 +108,11 @@ if __name__ == "__main__":
 
         results.append(min_convergent_sample_size)
 
-        # sns.histplot(min_convergent_sample_size, stat="density", ax=ax, alpha=0.5)
-        # sns.kdeplot(min_convergent_sample_size, fill=True, ax=ax, alpha=0.5)
-
-    # sns.histplot(
-    #     results, stat="density", binwidth=2000, common_bins=False, ax=ax, alpha=0.3
-    # )
     sns.boxplot(results, ax=ax)
     sns.swarmplot(data=results, color="k", size=3, ax=ax)
 
-    # ax.set_xlim(0, metadata["max_samples"])
-    ax.set_xlabel("Minimum convergent sample size")
-    ax.set_ylabel("Probability density")
+    ax.set_xlabel("Sampler")
+    ax.set_ylabel("Convergent sample size")
     fig.legend(Sampler)
     fig.tight_layout()
     fig.savefig(
