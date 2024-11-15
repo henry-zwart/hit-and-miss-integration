@@ -306,24 +306,39 @@ def adaptive_sampling(
     """
     # Counts the proportion of sample points that is inside of the Mandelbrot set area
     v = (x_max - x_min) * (y_max - y_min)
-    total_inside_area = est_area(n_samples, iterations, x_min, x_max, y_min, y_max)
+    total_inside_area = est_area(
+        n_samples,
+        iterations,
+        x_min,
+        x_max,
+        y_min,
+        y_max,
+        sampler=Sampler.RANDOM,
+        quiet=True,
+    )
     hits_proportion = total_inside_area / v
 
     # When max depth is reached the area of the current grid is returned.
     # This makes sure the algorithm doesn't go on forever.
     if cur_depth == max_depth:
-        return v * hits_proportion
+        # print(f'reached max depth: {cur_depth}')
+        return v * hits_proportion, n_samples
 
     # Checks balance hits and misses
     # If the balance is disproportionate (mostly hits or mostly misses):
     #         the subgrid is mostly entirely inside or outside the Mandelbrot set area
     #         -> thus, we return the area of the subgrid
     if hits_proportion < threshold or hits_proportion > 1 - threshold:
-        return v * hits_proportion
+        # print(f'Reached threshold with hits_proportion = {hits_proportion}')
+        return v * hits_proportion, n_samples
 
     # recursively calculates area for 4 subgrids
     mid_x, mid_y = (x_min + x_max) / 2, (y_min + y_max) / 2
     area = 0
+    sub_area = 0
+    count_samples = 0
+    sub_count_samples = 0
+    n_samples = n_samples // 2
     quadrants = (
         ((x_min, mid_x), (y_min, mid_y)),  # Bottom left
         ((mid_x, x_max), (y_min, mid_y)),  # Bottom right
@@ -331,8 +346,10 @@ def adaptive_sampling(
         ((mid_x, x_max), (mid_y, y_max)),  # Top right
     )
     for (x1, x2), (y1, y2) in quadrants:
-        area += adaptive_sampling(
-            iterations, n_samples, x1, x2, y1, y2, threshold, max_depth, cur_depth + 1
+        sub_area, sub_count_samples = adaptive_sampling(
+            n_samples, iterations, x1, x2, y1, y2, threshold, max_depth, cur_depth + 1
         )
+        count_samples += sub_count_samples
+        area += sub_area
 
-    return area
+    return area, count_samples
