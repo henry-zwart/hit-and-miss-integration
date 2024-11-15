@@ -5,6 +5,8 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 
+from hit_and_mandelbrot.random_seed import load_rng
+
 
 def plot_shape_convergence():
     # Load experiment data and prepare figures directory for plots
@@ -110,7 +112,7 @@ def plot_shape_convergence():
 
 if __name__ == "__main__":
     # Set random seeds
-    np.random.seed(42)
+    load_rng()
     random.seed(42)
 
     plot_shape_convergence()

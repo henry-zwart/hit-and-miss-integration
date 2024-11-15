@@ -5,10 +5,11 @@ from pathlib import Path
 import numpy as np
 
 from hit_and_mandelbrot.hits import calculate_sample_hits
+from hit_and_mandelbrot.random_seed import load_rng
 
 if __name__ == "__main__":
     # Set random seeds
-    np.random.seed(42)
+    load_rng()
     random.seed(42)
 
     # Establish directory to write results

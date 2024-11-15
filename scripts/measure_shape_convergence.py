@@ -6,6 +6,7 @@ import numpy as np
 
 from hit_and_mandelbrot import Sampler, est_area, mean_and_ci
 from hit_and_mandelbrot.mandelbrot import sample_complex_uniform
+from hit_and_mandelbrot.random_seed import load_rng
 
 
 def rel_change(i, samples, cache, z=1.96, ddof=1):
@@ -119,7 +120,7 @@ def minimal_convergence_iteration(samples, threshold, z, ddof):
 
 if __name__ == "__main__":
     # Set random seeds
-    np.random.seed(42)
+    load_rng()
     random.seed(42)
 
     # Establish directory to write results

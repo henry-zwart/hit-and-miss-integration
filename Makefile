@@ -9,7 +9,7 @@ SHAPE_CONVERGENCE_FIGURES =  $(patsubst %, figures/shape_convergence/%, $(SHAPE_
 SHAPE_CONVERGENCE_DATA =  $(patsubst %, data/shape_convergence/%, $(SHAPE_CONVERGENCE_DATA_NAMES))
 
 LIMIT_CONVERGENCE_FIGURE_NAMES = limit_error.png limit_area.png
-JOINT_CONVERGENCE_DATA_NAMES = metadata.json expected_area.npy confidence_intervals.npy
+JOINT_CONVERGENCE_DATA_NAMES = metadata.json expected_area.npy confidence_intervals.npy expected_err.npy err_confidence.npy
 LIMIT_CONVERGENCE_FIGURES = $(patsubst %, figures/limit_convergence/%, $(LIMIT_CONVERGENCE_FIGURE_NAMES))
 JOINT_CONVERGENCE_DATA = $(patsubst %, data/joint_convergence/%, $(JOINT_CONVERGENCE_DATA_NAMES))
 
@@ -17,7 +17,7 @@ JOINT_ERROR_FIGURE_NAMES = error_contour.png error_hist.png
 JOINT_ERROR_FIGURES = $(patsubst %, figures/joint_error/%, $(JOINT_ERROR_FIGURE_NAMES))
 
 SAMPLERS = random lhs ortho
-SAMPLE_CONVERGENCE_FIGURE_NAMES = area.png convergent_samplesize_dist.png
+SAMPLE_CONVERGENCE_FIGURE_NAMES = area.png convergent_samplesize_dist.png sampler_examples.png
 SAMPLE_CONVERGENCE_FIGURES = $(patsubst %, figures/sample_convergence/%, $(SAMPLE_CONVERGENCE_FIGURE_NAMES))
 SAMPLE_CONVERGENCE_DATA_NAMES = metadata.json $(patsubst %, %_measured_area.npy, $(SAMPLERS)) $(patsubst %, %_expected_area.npy, $(SAMPLERS)) $(patsubst %, %_ci.npy, $(SAMPLERS)) $(patsubst %, %_sample_size.npy, $(SAMPLERS))
 SAMPLE_CONVERGENCE_DATA = $(patsubst %, data/sample_convergence/%, $(SAMPLE_CONVERGENCE_DATA_NAMES))
@@ -50,7 +50,7 @@ $(FIGURES_DIR):
 $(SHAPE_CONVERGENCE_DATA) &: scripts/measure_shape_convergence.py | $(DATA_DIR)
 	uv run $<
 
-$(JOINT_CONVERGENCE_DATA) &: scripts/measure_joint_convergence.py | $(DATA_DIR)
+$(JOINT_CONVERGENCE_DATA) &: scripts/measure_joint_convergence.py $(SHAPE_CONVERGENCE_DATA) | $(DATA_DIR)
 	uv run $<
 
 $(MANDELBROT_DATA) &: scripts/deterministic_mandelbrot.py | $(DATA_DIR)

@@ -7,6 +7,8 @@ import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
 import numpy as np
 
+from hit_and_mandelbrot.random_seed import load_rng
+
 
 def get_white_to_blue_cmap():
     colors = plt.cm.Blues(np.linspace(0, 1, 256))
@@ -17,7 +19,7 @@ def get_white_to_blue_cmap():
 
 if __name__ == "__main__":
     # Set random seeds
-    np.random.seed(42)
+    load_rng()
     random.seed(42)
 
     # Load data, prepare figure directory for plotting
