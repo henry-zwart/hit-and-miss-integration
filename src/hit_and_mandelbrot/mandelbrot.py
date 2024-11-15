@@ -73,7 +73,8 @@ def est_outer_area(
         quiet=True,
     )
     exp_outer_area, outer_area_ci = mean_and_ci(area, z=2.326)
-    assert 100 * (outer_area_ci / exp_outer_area) < 0.1, "CI exceeds 0.1%"
+    ci_pct = 100 * (outer_area_ci / exp_outer_area)
+    assert ci_pct < 0.1, f"CI exceeds 0.1%: {ci_pct:.4f}%"
     return exp_outer_area
 
 
@@ -87,7 +88,7 @@ def sample_shadow(
     approx_iters=4,
     quiet=False,
 ):
-    OUTER_SAMPLE_SIZE = 131**2
+    OUTER_SAMPLE_SIZE = 151**2
     outer_area = est_outer_area(
         OUTER_SAMPLE_SIZE,
         approx_iters,
