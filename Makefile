@@ -17,7 +17,7 @@ JOINT_ERROR_FIGURE_NAMES = error_contour.png error_hist.png
 JOINT_ERROR_FIGURES = $(patsubst %, figures/joint_error/%, $(JOINT_ERROR_FIGURE_NAMES))
 
 SAMPLERS = random lhs ortho
-SAMPLE_CONVERGENCE_FIGURE_NAMES = area.png convergent_samplesize_dist.png
+SAMPLE_CONVERGENCE_FIGURE_NAMES = area.png convergent_samplesize_dist.png sampler_examples.png
 SAMPLE_CONVERGENCE_FIGURES = $(patsubst %, figures/sample_convergence/%, $(SAMPLE_CONVERGENCE_FIGURE_NAMES))
 SAMPLE_CONVERGENCE_DATA_NAMES = metadata.json $(patsubst %, %_measured_area.npy, $(SAMPLERS)) $(patsubst %, %_expected_area.npy, $(SAMPLERS)) $(patsubst %, %_ci.npy, $(SAMPLERS)) $(patsubst %, %_sample_size.npy, $(SAMPLERS))
 SAMPLE_CONVERGENCE_DATA = $(patsubst %, data/sample_convergence/%, $(SAMPLE_CONVERGENCE_DATA_NAMES))

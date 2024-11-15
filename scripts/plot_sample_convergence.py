@@ -2,6 +2,8 @@ import json
 import random
 from pathlib import Path
 
+import matplotlib as mpl
+import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
@@ -18,6 +20,47 @@ def final_true(mask, axis, invalid_val=-1):
     """
     val = mask.shape[axis] - np.flip(mask, axis=axis).argmax(axis=axis) - 1
     return np.where(mask.any(axis=axis), val, invalid_val)
+
+
+def get_white_to_blue_cmap():
+    colors = plt.cm.Blues(np.linspace(0, 1, 256))
+    colors[:128] = mcolors.to_rgba("white")  # Modify lower half to be white
+    custom_blues = mcolors.LinearSegmentedColormap.from_list("CustomBlues", colors)
+    return custom_blues
+
+
+def plot_sampler_examples(results_dir: Path, figures_dir: Path):
+    overlay_hits = np.load(Path("data") / "mandelbrot" / "hits.npy")[4]
+    mask = np.reshape(overlay_hits, (int(np.sqrt(len(overlay_hits))), -1))
+    cmap = get_white_to_blue_cmap()
+
+    fig, axes = plt.subplots(
+        1,
+        len(Sampler),
+        sharex=True,
+        sharey=True,
+        figsize=(12, 5),
+        subplot_kw=dict(box_aspect=1),
+    )
+
+    for i, sampler in enumerate(Sampler):
+        samples = np.load(results_dir / f"{sampler}_example_samples.npy")
+        hits = np.load(results_dir / f"{sampler}_example_hits.npy")
+
+        samples_x = samples.real
+        samples_y = samples.imag
+        axes[i].scatter(samples_x[hits], samples_y[hits], s=5, color="green")
+        axes[i].scatter(samples_x[~hits], samples_y[~hits], s=5, color="red")
+        axes[i].set_title(sampler.title())
+        axes[i].imshow(
+            mask,
+            alpha=0.35,
+            cmap=cmap,
+            norm=mpl.colors.Normalize(vmin=-0, vmax=1),
+            extent=[-2, 2, -2, 2],
+        )
+
+    fig.savefig(figures_dir / "sampler_examples.png", dpi=500, bbox_inches="tight")
 
 
 if __name__ == "__main__":
@@ -39,6 +82,8 @@ if __name__ == "__main__":
 
     with (Path("data") / "shape_convergence" / "metadata.json").open("r") as f:
         target_area = json.load(f)["min_convergent_area"]
+
+    plot_sampler_examples(RESULTS_ROOT, FIGURES_ROOT)
 
     # Show convergence behaviour of different samplers.
     #   - Plot two sample std. for each sampler, for varying sample sizes.

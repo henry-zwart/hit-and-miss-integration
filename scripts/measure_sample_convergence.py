@@ -17,6 +17,20 @@ Record hits for largest sample size. To measure the sample convergence with k sa
 select k rows at random. Repeat for N_REPEATS.
 """
 
+
+def create_sampler_example_data(n_samples: int, iterations: int, result_dir: Path):
+    for sampler in Sampler:
+        samples = sample_complex_uniform(
+            n_samples,
+            repeats=1,
+            method=sampler,
+            quiet=True,
+        )
+        hits = calculate_sample_hits(samples.c, iterations=iterations)
+        np.save(result_dir / f"{sampler}_example_samples.npy", samples.c[0])
+        np.save(result_dir / f"{sampler}_example_hits.npy", hits[0])
+
+
 if __name__ == "__main__":
     # Random seeds
     load_rng()
@@ -36,9 +50,13 @@ if __name__ == "__main__":
         Sampler.ORTHO: np.argmax(sample_sizes >= 139**2),
         Sampler.SHADOW: np.argmax(sample_sizes >= 257**2),
     }
+    EXAMPLE_ITERS = 16
+    EXAMPLE_SAMPLE_SIZE = 7**2
     REPEATS = 30
     z = 1.96
     ddof = 1
+
+    create_sampler_example_data(EXAMPLE_SAMPLE_SIZE, EXAMPLE_ITERS, RESULTS_ROOT)
 
     # Load data from the iteration convergence experiment
     SHAPE_CONVERGENCE_RESULTS_ROOT = Path("data") / "shape_convergence"
@@ -59,6 +77,7 @@ if __name__ == "__main__":
                     quiet=True,
                     per_sample=True,
                 )[:, iter_sample_sizes - 1]
+
                 expected_areas, cis = mean_and_ci(measured_areas, z=z, ddof=ddof)
 
                 # Plotting code expects (sample_sizes, repeats)
@@ -94,6 +113,8 @@ if __name__ == "__main__":
     # Write out experiment metadata
     metadata = {
         "max_samples": int(sample_sizes[-1]),
+        "example_iters": EXAMPLE_ITERS,
+        "example_sample_size": EXAMPLE_SAMPLE_SIZE,
         "repeats": REPEATS,
         "z": z,
         "ddof": ddof,
