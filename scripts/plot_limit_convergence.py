@@ -85,6 +85,8 @@ if __name__ == "__main__":
         ε_i_upper[MIN_ITERATIONS:],
         alpha=0.25,
     )
+    ax[0].set_xscale("log")
+    ax[0].set_yscale("log")
 
     # Plot error due to finite samples, with "infinite" iterations
     for iters in (1, 4, 16):

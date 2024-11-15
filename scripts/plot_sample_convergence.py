@@ -23,6 +23,7 @@ if __name__ == "__main__":
     # Set random seeds
     np.random.seed(42)
     random.seed(42)
+    rng = np.random.default_rng(seed=42)
 
     # Parameters
     MIN_SAMPLES = 20
@@ -66,16 +67,18 @@ if __name__ == "__main__":
         area = np.load(RESULTS_ROOT / f"{sampler}_expected_area.npy")[MIN_SAMPLES:]
         ci = np.load(RESULTS_ROOT / f"{sampler}_ci.npy")[MIN_SAMPLES:]
         sample_size = np.load(RESULTS_ROOT / f"{sampler}_sample_size.npy")[MIN_SAMPLES:]
+
         lower = area - ci
         upper = area + ci
         axes[i].fill_between(
-            sample_size, lower, upper, color=colours[sampler], alpha=0.5, label=sampler
+            sample_size, lower, upper, color=colours[sampler], alpha=0.5
         )
         axes[i].plot(
             sample_size, area, color=colours[sampler], linestyle="dashed", linewidth=1
         )
+        axes[i].set_title(sampler.title())
 
-    fig.legend()
+    # fig.legend()
     fig.tight_layout()
     fig.savefig(FIGURES_ROOT / "area.png", dpi=700)
 
@@ -84,11 +87,17 @@ if __name__ == "__main__":
     #       that for all subsequent sample sizes, the estimate is totally within the
     #       1.5% error bounds.
     # Plot this as a box plot, with convergent sample sizes overlaid.
+
     fig, ax = plt.subplots()
     results = []
     for i, sampler in enumerate(Sampler):
         area = np.load(RESULTS_ROOT / f"{sampler}_measured_area.npy")
         sample_size = np.load(RESULTS_ROOT / f"{sampler}_sample_size.npy")
+
+        # Shuffle results for each sample size along 'repeats' axis
+        ind = np.ones_like(area, dtype=np.int64) * np.arange(area.shape[1])
+        rng.permuted(ind, axis=1, out=ind)
+        area = np.take_along_axis(area, ind, axis=1)
 
         # Final sample size with estimated area outside threshold
         max_nonconvergent_idx = final_true(
@@ -109,7 +118,7 @@ if __name__ == "__main__":
         results.append(min_convergent_sample_size)
 
     sns.boxplot(results, ax=ax)
-    sns.swarmplot(data=results, color="k", size=3, ax=ax)
+    sns.swarmplot(data=results, color="k", size=1.5, ax=ax)
 
     ax.set_xlabel("Sampler")
     ax.set_ylabel("Convergent sample size")

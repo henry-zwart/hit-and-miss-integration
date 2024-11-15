@@ -9,6 +9,12 @@ from tqdm import tqdm
 from hit_and_mandelbrot.mandelbrot import Sampler, est_area
 from hit_and_mandelbrot.statistics import mean_and_ci
 
+"""
+We can measure sample convergence for random + shadow sampling via bootstrapping.
+Record hits for largest sample size. To measure the sample convergence with k samples,
+select k rows at random. Repeat for N_REPEATS.
+"""
+
 if __name__ == "__main__":
     # Random seeds
     np.random.seed(42)
@@ -19,14 +25,14 @@ if __name__ == "__main__":
     RESULTS_ROOT.mkdir(parents=True, exist_ok=True)
 
     # Parameters
-    sieve.extend(367)
+    sieve.extend(499)
     primes = np.array(sieve._list)
-    sample_sizes = primes**2
+    sample_sizes = primes[1:] ** 2  # Exclude p=2, incompatible with shadow sampler i=4
     MAX_SAMPLES_IDX = {
         Sampler.RANDOM: len(sample_sizes),
-        Sampler.LHS: len(sample_sizes),
+        Sampler.LHS: np.argmax(sample_sizes >= 397**2),
         Sampler.ORTHO: np.argmax(sample_sizes >= 139**2),
-        Sampler.SHADOW: len(sample_sizes),
+        Sampler.SHADOW: np.argmax(sample_sizes >= 257**2),
     }
     REPEATS = 30
     z = 1.96
@@ -42,24 +48,40 @@ if __name__ == "__main__":
         for sampler in Sampler:
             pbar.set_description(f"{sampler.title()} sampler")
             iter_sample_sizes = sample_sizes[: MAX_SAMPLES_IDX[sampler]]
-            measured_areas = np.empty(
-                (len(iter_sample_sizes), REPEATS), dtype=np.float64
-            )
-            expected_areas = np.empty_like(iter_sample_sizes, dtype=np.float64)
-            cis = np.empty_like(iter_sample_sizes, dtype=np.float64)
-            for i, sample_size in enumerate(iter_sample_sizes):
-                area = est_area(
-                    sample_size,
+            if sampler in (Sampler.RANDOM, Sampler.SHADOW):
+                measured_areas = est_area(
+                    iter_sample_sizes.max(),
                     min_convergent_iters,
                     repeats=REPEATS,
                     sampler=sampler,
                     quiet=True,
+                    per_sample=True,
+                )[:, iter_sample_sizes - 1]
+                expected_areas, cis = mean_and_ci(measured_areas, z=z, ddof=ddof)
+
+                # Plotting code expects (sample_sizes, repeats)
+                measured_areas = measured_areas.T
+                pbar.update(len(iter_sample_sizes))
+
+            else:
+                measured_areas = np.empty(
+                    (len(iter_sample_sizes), REPEATS), dtype=np.float64
                 )
-                expected_area, ci = mean_and_ci(area, z=z, ddof=ddof)
-                expected_areas[i] = expected_area
-                measured_areas[i] = area
-                cis[i] = ci
-                pbar.update()
+                expected_areas = np.empty_like(iter_sample_sizes, dtype=np.float64)
+                cis = np.empty_like(iter_sample_sizes, dtype=np.float64)
+                for i, sample_size in enumerate(iter_sample_sizes):
+                    area = est_area(
+                        sample_size,
+                        min_convergent_iters,
+                        repeats=REPEATS,
+                        sampler=sampler,
+                        quiet=True,
+                    )
+                    expected_area, ci = mean_and_ci(area, z=z, ddof=ddof)
+                    expected_areas[i] = expected_area
+                    measured_areas[i] = area
+                    cis[i] = ci
+                    pbar.update()
 
             # Save per-sampler results
             np.save(RESULTS_ROOT / f"{sampler}_measured_area.npy", measured_areas)
