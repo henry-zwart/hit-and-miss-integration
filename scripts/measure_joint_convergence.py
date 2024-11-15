@@ -17,40 +17,50 @@ if __name__ == "__main__":
     RESULTS_ROOT = Path("data") / "joint_convergence"
     RESULTS_ROOT.mkdir(parents=True, exist_ok=True)
     with (Path("data") / "shape_convergence/metadata.json").open("r") as f:
-        convergent_iters = json.load(f)["min_convergent_iters"]
+        shape_conv_meta = json.load(f)
+        convergent_iters = shape_conv_meta["min_convergent_iters"]
+        target_area = shape_conv_meta["best_estimate_area"]
 
     # Parameters
-    n_samples = 100000
-    iterations = np.arange(
-        convergent_iters, step=10
+    N_SAMPLES = 500000
+    ITER_STEP_SIZE = 25
+    ITERATIONS = np.arange(
+        convergent_iters, step=ITER_STEP_SIZE
     )  # To-do: Set this equal to the minimum iterations for convergence
-    repeats = 50
-    sampler = Sampler.RANDOM
-    ddof = 1
-    z = 1.96
+    REPEATS = 25
+    SAMPLER = Sampler.RANDOM
+    DDOF = 1
+    Z = 1.96
 
     # Calculate per-sample-size, per-iteration area of Mandelbrot
     area = est_area(
-        n_samples,
-        iterations,
-        repeats=repeats,
-        sampler=sampler,
+        N_SAMPLES,
+        ITERATIONS,
+        repeats=REPEATS,
+        sampler=SAMPLER,
         per_sample=True,
     )
 
     # Calculate expected area and CI for each iteration and sample-size
-    expected_area, confidence_interval = mean_and_ci(area, ddof=ddof, z=z)
+    expected_area, confidence_interval = mean_and_ci(area, ddof=DDOF, z=Z)
+
+    # Calculate expected error (against A_M), and CIs
+    error = np.abs(area - target_area)
+    expected_err, err_ci = mean_and_ci(error, ddof=DDOF, z=Z)
 
     # Save results and experiment metadata
     np.save(RESULTS_ROOT / "expected_area.npy", expected_area)
     np.save(RESULTS_ROOT / "confidence_intervals.npy", confidence_interval)
+    np.save(RESULTS_ROOT / "expected_err.npy", expected_err)
+    np.save(RESULTS_ROOT / "err_confidence.npy", err_ci)
     metadata = {
-        "max_samples": n_samples,
-        "iterations": iterations.tolist(),
-        "repeats": repeats,
-        "sampling_method": str(sampler),
-        "ddof": ddof,
-        "z": z,
+        "max_samples": N_SAMPLES,
+        "iterations": ITERATIONS.tolist(),
+        "iter_step_size": ITER_STEP_SIZE,
+        "repeats": REPEATS,
+        "sampling_method": str(SAMPLER),
+        "ddof": DDOF,
+        "z": Z,
     }
     with (RESULTS_ROOT / "metadata.json").open("w") as f:
         json.dump(metadata, f)
