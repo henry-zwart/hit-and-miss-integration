@@ -7,6 +7,7 @@ import numpy as np
 import seaborn as sns
 
 from hit_and_mandelbrot import Sampler
+from hit_and_mandelbrot.random_seed import load_rng
 
 
 def final_true(mask, axis, invalid_val=-1):
@@ -21,9 +22,8 @@ def final_true(mask, axis, invalid_val=-1):
 
 if __name__ == "__main__":
     # Set random seeds
-    np.random.seed(42)
+    load_rng()
     random.seed(42)
-    rng = np.random.default_rng(seed=42)
 
     # Parameters
     MIN_SAMPLES = 20
@@ -96,7 +96,7 @@ if __name__ == "__main__":
 
         # Shuffle results for each sample size along 'repeats' axis
         ind = np.ones_like(area, dtype=np.int64) * np.arange(area.shape[1])
-        rng.permuted(ind, axis=1, out=ind)
+        load_rng().permuted(ind, axis=1, out=ind)
         area = np.take_along_axis(area, ind, axis=1)
 
         # Final sample size with estimated area outside threshold

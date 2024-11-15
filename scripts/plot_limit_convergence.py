@@ -5,9 +5,11 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 
+from hit_and_mandelbrot.random_seed import load_rng
+
 if __name__ == "__main__":
     # Set random seeds
-    np.random.seed(42)
+    load_rng()
     random.seed(42)
 
     # Set parameters for plotting

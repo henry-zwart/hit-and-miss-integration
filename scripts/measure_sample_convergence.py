@@ -6,7 +6,9 @@ import numpy as np
 from sympy import sieve
 from tqdm import tqdm
 
-from hit_and_mandelbrot.mandelbrot import Sampler, est_area
+from hit_and_mandelbrot.hits import calculate_sample_hits
+from hit_and_mandelbrot.mandelbrot import Sampler, est_area, sample_complex_uniform
+from hit_and_mandelbrot.random_seed import load_rng
 from hit_and_mandelbrot.statistics import mean_and_ci
 
 """
@@ -17,7 +19,7 @@ select k rows at random. Repeat for N_REPEATS.
 
 if __name__ == "__main__":
     # Random seeds
-    np.random.seed(42)
+    load_rng()
     random.seed(42)
 
     # Establish directory to write results

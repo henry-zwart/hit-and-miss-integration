@@ -7,6 +7,7 @@ import numpy as np
 from scipy.stats.qmc import LatinHypercube
 from tqdm import trange
 
+from hit_and_mandelbrot.random_seed import load_rng
 from hit_and_mandelbrot.statistics import mean_and_ci
 
 from .hits import (
@@ -34,7 +35,7 @@ class Samples:
 
 def sample_lhs(xmin, xmax, ymin, ymax, n, repeats, strength=1, quiet=False):
     # Sample from [0,1)
-    lhs = LatinHypercube(d=2, strength=strength)
+    lhs = LatinHypercube(d=2, strength=strength, seed=load_rng())
     range_fn = range if quiet else trange
     normalised_real_samples = np.stack([lhs.random(n) for _ in range_fn(repeats)])
     np.random.shuffle(normalised_real_samples)
@@ -131,6 +132,9 @@ def sample_complex_uniform(
     quiet=False,
     **kwargs,
 ):
+    # Load cached RNG
+    rng = load_rng()
+
     # Ensure coordinates are such that min <= max
     if r_min > r_max:
         r_min, r_max = r_max, r_min
@@ -142,8 +146,8 @@ def sample_complex_uniform(
 
     match method:
         case Sampler.RANDOM:
-            real_samples = np.random.uniform(r_min, r_max, (repeats, n_samples))
-            imag_samples = np.random.uniform(i_min, i_max, (repeats, n_samples)) * 1.0j
+            real_samples = rng.uniform(r_min, r_max, (repeats, n_samples))
+            imag_samples = rng.uniform(i_min, i_max, (repeats, n_samples)) * 1.0j
             samples = real_samples + imag_samples
         case Sampler.LHS:
             samples = sample_lhs(
