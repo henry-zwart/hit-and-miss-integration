@@ -22,12 +22,12 @@ if __name__ == "__main__":
         target_area = shape_conv_meta["best_estimate_area"]
 
     # Parameters
-    N_SAMPLES = 500000
+    N_SAMPLES = 450000
     ITER_STEP_SIZE = 25
     ITERATIONS = np.arange(
         convergent_iters, step=ITER_STEP_SIZE
     )  # To-do: Set this equal to the minimum iterations for convergence
-    REPEATS = 25
+    REPEATS = 30
     SAMPLER = Sampler.RANDOM
     DDOF = 1
     Z = 1.96
