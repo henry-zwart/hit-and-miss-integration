@@ -20,11 +20,10 @@ if __name__ == "__main__":
 
     # Parameters
     n_samples = 100000
-    convergent_iters = 256
     iterations = np.arange(
         convergent_iters, step=10
     )  # To-do: Set this equal to the minimum iterations for convergence
-    repeats = 100
+    repeats = 50
     sampler = Sampler.RANDOM
     ddof = 1
     z = 1.96
