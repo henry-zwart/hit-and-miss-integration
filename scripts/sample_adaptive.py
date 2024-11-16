@@ -80,6 +80,7 @@ if __name__ == "__main__":
     metadata = {
         "max_samples": np.max(total_samples),
         "iterations": iterations,
+        "repeats": repeats,
         "initial_samples": initial_samples,
         "sampling_method": "Adaptive_sampling",
         "ddof": ddof,
