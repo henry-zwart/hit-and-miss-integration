@@ -136,7 +136,7 @@ if __name__ == "__main__":
 
     axes[4].plot(average_samples, exp_area, linestyle="dashed", linewidth=1)
     axes[4].fill_between(
-        average_samples, lower, upper, alpha=0.5, color="yellow", label="Stratified"
+        average_samples, lower, upper, alpha=0.5, color="yellow", label="Adaptive"
     )
 
     # fig.legend()
