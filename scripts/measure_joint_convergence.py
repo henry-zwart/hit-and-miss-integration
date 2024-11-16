@@ -24,9 +24,7 @@ if __name__ == "__main__":
     # Parameters
     N_SAMPLES = 450000
     ITER_STEP_SIZE = 25
-    ITERATIONS = np.arange(
-        convergent_iters, step=ITER_STEP_SIZE
-    )  # To-do: Set this equal to the minimum iterations for convergence
+    ITERATIONS = np.arange(convergent_iters, step=ITER_STEP_SIZE)
     REPEATS = 30
     SAMPLER = Sampler.RANDOM
     DDOF = 1
@@ -49,8 +47,8 @@ if __name__ == "__main__":
     expected_err, err_ci = mean_and_ci(error, ddof=DDOF, z=Z)
 
     # Save results and experiment metadata
-    np.save(RESULTS_ROOT / "expected_area.npy", expected_area)
-    np.save(RESULTS_ROOT / "confidence_intervals.npy", confidence_interval)
+    # np.save(RESULTS_ROOT / "expected_area.npy", expected_area)
+    # np.save(RESULTS_ROOT / "confidence_intervals.npy", confidence_interval)
     np.save(RESULTS_ROOT / "expected_err.npy", expected_err)
     np.save(RESULTS_ROOT / "err_confidence.npy", err_ci)
     metadata = {
