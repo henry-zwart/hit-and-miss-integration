@@ -88,7 +88,7 @@ if __name__ == "__main__":
     # Show convergence behaviour of different samplers.
     #   - Plot two sample std. for each sampler, for varying sample sizes.
     #   - Show the target (~A_M) area and 1.5% error thresholds for comparison.
-    fig, axes = plt.subplots(len(Sampler), sharey=True, sharex=True)
+    fig, axes = plt.subplots(len(Sampler) + 1, sharey=True, sharex=True)
 
     # True area
     for ax in axes:
@@ -122,6 +122,22 @@ if __name__ == "__main__":
             sample_size, area, color=colours[sampler], linestyle="dashed", linewidth=1
         )
         axes[i].set_title(sampler.title())
+
+    RESULTS_ROOT_2 = Path("data") / "sample_adaptive"
+    area = np.load(RESULTS_ROOT_2 / "area.npy")
+    total_samples = np.load(RESULTS_ROOT_2 / "total_samples.npy")
+    exp_area = np.load(RESULTS_ROOT_2 / "expected_area.npy")
+    ci = np.load(RESULTS_ROOT_2 / "confidence_intervals.npy")
+
+    average_samples = np.mean(total_samples, axis=0)
+
+    lower = exp_area - ci
+    upper = exp_area + ci
+
+    axes[4].plot(average_samples, exp_area, linestyle="dashed", linewidth=1)
+    axes[4].fill_between(
+        average_samples, lower, upper, alpha=0.5, color="yellow", label="Adaptive"
+    )
 
     # fig.legend()
     fig.tight_layout()
