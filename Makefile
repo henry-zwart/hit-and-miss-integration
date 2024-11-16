@@ -22,6 +22,8 @@ SAMPLE_CONVERGENCE_FIGURES = $(patsubst %, figures/sample_convergence/%, $(SAMPL
 SAMPLE_CONVERGENCE_DATA_NAMES = metadata.json $(patsubst %, %_measured_area.npy, $(SAMPLERS)) $(patsubst %, %_expected_area.npy, $(SAMPLERS)) $(patsubst %, %_ci.npy, $(SAMPLERS)) $(patsubst %, %_sample_size.npy, $(SAMPLERS))
 SAMPLE_CONVERGENCE_DATA = $(patsubst %, data/sample_convergence/%, $(SAMPLE_CONVERGENCE_DATA_NAMES))
 
+SAMPLE_ADAPTIVE_DATA_NAMES = metadata.json area.npy confidence_intervals.npy expected_area.npy total_samples.npy
+SAMPLE_ADAPTIVE_DATA = $(patsubst %, data/sample_adaptive/%, $(SAMPLE_ADAPTIVE_DATA_NAMES))
 FIGURES = $(MANDELBROT_FIGURES) $(SHAPE_CONVERGENCE_FIGURES) $(LIMIT_CONVERGENCE_FIGURES) $(JOINT_ERROR_FIGURES) $(SAMPLE_CONVERGENCE_FIGURES)
 
 # all: $(SHAPE_CONVERGENCE_DATA)
@@ -41,7 +43,7 @@ $(JOINT_ERROR_FIGURES) &: scripts/plot_joint_error.py $(JOINT_CONVERGENCE_DATA)
 $(MANDELBROT_FIGURES) &: scripts/plot_mandelbrot.py $(MANDELBROT_DATA)
 	uv run $<
 
-$(SAMPLE_CONVERGENCE_FIGURES) &: scripts/plot_sample_convergence.py $(SAMPLE_CONVERGENCE_DATA)
+$(SAMPLE_CONVERGENCE_FIGURES) &: scripts/plot_sample_convergence.py $(SAMPLE_CONVERGENCE_DATA) $(SAMPLE_ADAPTIVE_DATA)
 	uv run $<
 
 $(FIGURES_DIR):
@@ -61,6 +63,11 @@ $(SAMPLE_CONVERGENCE_DATA) &: scripts/measure_sample_convergence.py $(SHAPE_CONV
 
 $(DATA_DIR):
 	mkdir -p $@
+
+$(SAMPLE_ADAPTIVE_DATA) &: scripts/sample_adaptive.py $(SHAPE_CONVERGENCE_DATA)
+	uv run $<
+
+
 
 
 .PHONY: clean
