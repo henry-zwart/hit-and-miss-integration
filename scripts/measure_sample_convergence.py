@@ -113,7 +113,7 @@ if __name__ == "__main__":
     # Write out experiment metadata
     metadata = {
         "max_samples": {
-            sampler: int(sample_sizes[MAX_SAMPLES_IDX[sampler]] - 1)
+            sampler: int(sample_sizes[MAX_SAMPLES_IDX[sampler] - 1])
             for sampler in Sampler
         },
         "example_iters": EXAMPLE_ITERS,
