@@ -8,13 +8,10 @@ SHAPE_CONVERGENCE_DATA_NAMES = metadata.json iterations.npy area_cis.npy relchan
 SHAPE_CONVERGENCE_FIGURES =  $(patsubst %, figures/shape_convergence/%, $(SHAPE_CONVERGENCE_FIGURE_NAMES))
 SHAPE_CONVERGENCE_DATA =  $(patsubst %, data/shape_convergence/%, $(SHAPE_CONVERGENCE_DATA_NAMES))
 
-LIMIT_CONVERGENCE_FIGURE_NAMES = limit_error.png limit_area.png
-JOINT_CONVERGENCE_DATA_NAMES = metadata.json expected_area.npy confidence_intervals.npy expected_err.npy err_confidence.npy
+LIMIT_CONVERGENCE_FIGURE_NAMES = limit_error.png
+JOINT_CONVERGENCE_DATA_NAMES = metadata.json expected_err.npy err_confidence.npy
 LIMIT_CONVERGENCE_FIGURES = $(patsubst %, figures/limit_convergence/%, $(LIMIT_CONVERGENCE_FIGURE_NAMES))
 JOINT_CONVERGENCE_DATA = $(patsubst %, data/joint_convergence/%, $(JOINT_CONVERGENCE_DATA_NAMES))
-
-JOINT_ERROR_FIGURE_NAMES = error_contour.png error_hist.png
-JOINT_ERROR_FIGURES = $(patsubst %, figures/joint_error/%, $(JOINT_ERROR_FIGURE_NAMES))
 
 SAMPLERS = random lhs ortho
 SAMPLE_CONVERGENCE_FIGURE_NAMES = area.png convergent_samplesize_dist.png sampler_examples.png
@@ -35,9 +32,6 @@ $(SHAPE_CONVERGENCE_FIGURES) &: scripts/plot_shape_convergence.py $(SHAPE_CONVER
 	uv run $<
 
 $(LIMIT_CONVERGENCE_FIGURES) &: scripts/plot_limit_convergence.py $(JOINT_CONVERGENCE_DATA)
-	uv run $<
-
-$(JOINT_ERROR_FIGURES) &: scripts/plot_joint_error.py $(JOINT_CONVERGENCE_DATA)
 	uv run $<
 
 $(MANDELBROT_FIGURES) &: scripts/plot_mandelbrot.py $(MANDELBROT_DATA)
@@ -66,8 +60,6 @@ $(DATA_DIR):
 
 $(SAMPLE_ADAPTIVE_DATA) &: scripts/sample_adaptive.py $(SHAPE_CONVERGENCE_DATA)
 	uv run $<
-
-
 
 
 .PHONY: clean
