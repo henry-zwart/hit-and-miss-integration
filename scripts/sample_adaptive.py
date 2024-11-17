@@ -1,15 +1,15 @@
 import json
-from pathlib import Path
-import numpy as np
 import random
+from pathlib import Path
+
+import numpy as np
 from tqdm import trange
 
-
-from hit_and_mandelbrot.random_seed import load_rng
 from hit_and_mandelbrot import mean_and_ci
 from hit_and_mandelbrot.mandelbrot import (
     adaptive_sampling,
 )
+from hit_and_mandelbrot.random_seed import load_rng
 
 if __name__ == "__main__":
     # Set random seeds
@@ -65,7 +65,7 @@ if __name__ == "__main__":
                 threshold=threshold,
                 max_depth=max_depth,
             )
-            area_repeat[j] = area_estimate
+            area_repeat[j] = area_estimate[0]
             samples_repeat[j] = count_samples
         area[i] = area_repeat
         total_samples[i] = samples_repeat
