@@ -382,7 +382,7 @@ if __name__ == "__main__":
     plt.rc("ytick", labelsize=FONT_SIZE_SMALL)  # fontsize of the tick labels
 
     # plt.rc("axes", titlepad=10)  # add space between title and plot
-    plt.rc("figure", dpi=700)  # fix output resolution
+    plt.rc("figure", dpi=500)  # fix output resolution
 
     # Base paths
     DATA = Path("data")
