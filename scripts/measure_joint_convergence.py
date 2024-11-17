@@ -39,6 +39,7 @@ if __name__ == "__main__":
         repeats=REPEATS,
         sampler=SAMPLER,
         per_sample=True,
+        quiet=True,
     )[..., ::SAMPLE_STEP_SIZE]
 
     # Calculate expected area and CI for each iteration and sample-size

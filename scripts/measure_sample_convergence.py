@@ -46,15 +46,16 @@ if __name__ == "__main__":
     sample_sizes = primes[1:] ** 2  # Exclude p=2, incompatible with shadow sampler i=4
     MAX_SAMPLES_IDX = {
         Sampler.RANDOM: len(sample_sizes),
-        Sampler.LHS: np.argmax(sample_sizes >= 397**2),
+        Sampler.LHS: np.argmax(sample_sizes >= 431**2),
         Sampler.ORTHO: np.argmax(sample_sizes >= 139**2),
         Sampler.SHADOW: np.argmax(sample_sizes >= 257**2),
     }
     EXAMPLE_ITERS = 16
     EXAMPLE_SAMPLE_SIZE = 7**2
-    REPEATS = 30
-    z = 1.96
-    ddof = 1
+    REPEATS = 50
+    SHADOW_ITERS = 4
+    Z = 1.96
+    DDOF = 1
 
     create_sampler_example_data(EXAMPLE_SAMPLE_SIZE, EXAMPLE_ITERS, RESULTS_ROOT)
 
@@ -76,9 +77,10 @@ if __name__ == "__main__":
                     sampler=sampler,
                     quiet=True,
                     per_sample=True,
+                    shadow_iters=SHADOW_ITERS,
                 )[:, iter_sample_sizes - 1]
 
-                expected_areas, cis = mean_and_ci(measured_areas, z=z, ddof=ddof)
+                expected_areas, cis = mean_and_ci(measured_areas, z=Z, ddof=DDOF)
 
                 # Plotting code expects (sample_sizes, repeats)
                 measured_areas = measured_areas.T
@@ -98,7 +100,7 @@ if __name__ == "__main__":
                         sampler=sampler,
                         quiet=True,
                     )
-                    expected_area, ci = mean_and_ci(area, z=z, ddof=ddof)
+                    expected_area, ci = mean_and_ci(area, z=Z, ddof=DDOF)
                     expected_areas[i] = expected_area
                     measured_areas[i] = area
                     cis[i] = ci
@@ -120,9 +122,10 @@ if __name__ == "__main__":
         "global_max_samples": int(sample_sizes[-1]),
         "example_iters": EXAMPLE_ITERS,
         "example_sample_size": EXAMPLE_SAMPLE_SIZE,
+        "shadow_iters": SHADOW_ITERS,
         "repeats": REPEATS,
-        "z": z,
-        "ddof": ddof,
+        "z": Z,
+        "ddof": DDOF,
         "iters": min_convergent_iters,
     }
     with (RESULTS_ROOT / "metadata.json").open("w") as f:

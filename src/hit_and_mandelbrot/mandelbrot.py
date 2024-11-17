@@ -86,13 +86,12 @@ def sample_shadow(
     outer_ymax,
     n_samples,
     repeats,
-    approx_iters=4,
-    quiet=False,
+    shadow_iters=4,
 ):
     OUTER_SAMPLE_SIZE = 151**2
     outer_area = est_outer_area(
         OUTER_SAMPLE_SIZE,
-        approx_iters,
+        shadow_iters,
         30,
         outer_xmin,
         outer_xmax,
@@ -110,7 +109,7 @@ def sample_shadow(
             ).c
 
             # Filter out any which aren't hits on the outer shape
-            outer_hits = calculate_sample_hits(samples, approx_iters)
+            outer_hits = calculate_sample_hits(samples, shadow_iters)
             reduced_samples = samples[outer_hits]
 
             # Add the remaining ones to our list of samples
@@ -204,6 +203,7 @@ def est_area(
     samples: Samples | None = None,
     per_sample: bool = False,
     quiet: bool = False,
+    **kwargs,
 ):
     if all((x is None for x in (samples, n_samples, sampler))):
         raise ValueError(
@@ -235,9 +235,8 @@ def est_area(
             y_max,
             method=sampler,
             quiet=quiet,
+            **kwargs,
         )
-    else:
-        print("Samples provided, ignoring sampling parameters.")
 
     match (per_sample, iterations):
         case (False, int()):  # Just record the final proportion
