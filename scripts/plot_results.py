@@ -7,6 +7,7 @@ import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
+from scipy.stats import ttest_ind
 
 from hit_and_mandelbrot.mandelbrot import Sampler
 from hit_and_mandelbrot.random_seed import load_rng
@@ -191,7 +192,8 @@ def plot_sampler_example(fp: str, data: Path, figures: Path):
         len(Sampler),
         sharex=True,
         sharey=True,
-        figsize=(12, 5),
+        # figsize=(12, 5),
+        figsize=(8, 4),
         subplot_kw=dict(box_aspect=1),
     )
 
@@ -212,7 +214,9 @@ def plot_sampler_example(fp: str, data: Path, figures: Path):
             norm=mpl.colors.Normalize(vmin=-0, vmax=1),
             extent=[-2, 2, -2, 2],
         )
+        axes[i].set_xticks([-2, 0, 2])
 
+    axes[0].set_yticks([-2, 0, 2])
     save_fig(fig, fp, figures)
 
 
@@ -314,19 +318,21 @@ def final_true(mask, axis, invalid_val=-1):
     return np.where(mask.any(axis=axis), val, invalid_val)
 
 
-def plot_sampler_convergence(fp: str, threshold: float, data: Path, figures: Path):
+def plot_sampler_convergence(
+    fp: str, threshold: float, data: Path, figures: Path, results_dir: Path
+):
     # Load data
     with (data / "shape_convergence/metadata.json").open("r") as f:
         target_area = json.load(f)["min_convergent_area"]
 
-    with (data / "sample_convergence/metadata.json").open("r") as f:
-        max_samples = json.load(f)["global_max_samples"]
+    # with (data / "sample_convergence/metadata.json").open("r") as f:
+    #     max_samples = json.load(f)["global_max_samples"]
 
     data_path = data / "sample_convergence"
 
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=(6, 3.5))
     results = []
-    for i, sampler in enumerate(Sampler):
+    for sampler in Sampler:
         area = np.load(data_path / f"{sampler}_measured_area.npy")
         sample_size = np.load(data_path / f"{sampler}_sample_size.npy")
 
@@ -352,13 +358,34 @@ def plot_sampler_convergence(fp: str, threshold: float, data: Path, figures: Pat
 
         results.append(min_convergent_sample_size)
 
-    sns.boxplot(results, ax=ax)
-    sns.swarmplot(data=results, color="k", size=1.5, ax=ax)
+    # Welch's t-test on minimum convergent sample sizes between samplers
+    test_results = {str(s): {} for s in Sampler}
+    for i, s1 in enumerate(Sampler):
+        for j, s2 in enumerate(Sampler):
+            if i == j:
+                continue
+            tr = ttest_ind(results[i], results[j], equal_var=False)
+            test_results[s1][str(s2)] = {
+                "statistic": tr.statistic,
+                "p": tr.pvalue,
+                "df": tr.df,
+            }
 
-    ax.set_xlabel("Sampler")
-    ax.set_ylabel("Convergent sample size")
-    ax.set_ylim(0, max_samples)
-    fig.legend(Sampler)
+    with (results_dir / "sampler_comparison.json").open("w") as f:
+        json.dump(test_results, f)
+
+    sns.boxplot(results, orient="h", ax=ax, whis=(0, 100), width=0.5)
+    sns.swarmplot(data=results, orient="h", color="k", size=1, ax=ax)
+
+    ax.set_xlabel("Convergent sample size")
+    ax.set_yticks([0, 1, 2, 3], labels=[s.title() for s in Sampler])
+    ax.tick_params(axis="both", which="both", length=0)
+    ax.yaxis.tick_right()
+    ax.set_xlim(0, None)
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    ax.spines["left"].set_visible(False)
+
     save_fig(fig, fp, figures)
 
 
@@ -428,6 +455,7 @@ if __name__ == "__main__":
         abs_convergence_threshold,
         DATA,
         FIGURES,
+        RESULTS,
     )
 
     with (RESULTS / "plot_metadata.json").open("w") as f:
