@@ -111,11 +111,13 @@ if __name__ == "__main__":
             np.save(RESULTS_ROOT / f"{sampler}_sample_size.npy", iter_sample_sizes)
 
     # Write out experiment metadata
+
     metadata = {
         "max_samples": {
             sampler: int(sample_sizes[MAX_SAMPLES_IDX[sampler] - 1])
             for sampler in Sampler
         },
+        "global_max_samples": int(sample_sizes[-1]),
         "example_iters": EXAMPLE_ITERS,
         "example_sample_size": EXAMPLE_SAMPLE_SIZE,
         "repeats": REPEATS,

@@ -17,7 +17,7 @@ if __name__ == "__main__":
     RESULTS_ROOT.mkdir(parents=True, exist_ok=True)
 
     # Parameters
-    STEPS = 5000
+    STEPS = 4000
     X_MIN, X_MAX = (-2, 2)
     Y_MIN, Y_MAX = (-2, 2)
     ITERATIONS = [0, 1, 2, 4, 16, 256]

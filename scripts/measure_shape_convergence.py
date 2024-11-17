@@ -11,27 +11,27 @@ from hit_and_mandelbrot.random_seed import load_rng
 
 def rel_change(i, samples, cache, z=1.96, ddof=1):
     assert i > 0
-    print("\n")
-    print("=" * 20)
-    print(f"Testing: i = {i}")
+    # print("\n")
+    # print("=" * 20)
+    # print(f"Testing: i = {i}")
 
     # Check if we already have (i // 2) cached
     if (i // 2) in cache:
-        print(f"Reusing cached result for: i//2 = {i // 2}.")
+        # print(f"Reusing cached result for: i//2 = {i // 2}.")
         a1 = cache[i // 2]
     else:
-        a1 = est_area(samples=samples, iterations=i // 2)
+        a1 = est_area(samples=samples, iterations=i // 2, quiet=True)
         cache[i // 2] = a1.copy()
 
     # We shouldn't have i in cache (since we shouldn't be repeating).
     # But we'll use it if its there :)
     if i in cache:
-        print(f"Warning: {i} has already been tested!")
+        # print(f"Warning: {i} has already been tested!")
         a2 = cache[i]
     else:
-        a2 = est_area(samples=samples, iterations=i)
+        a2 = est_area(samples=samples, iterations=i, quiet=True)
         cache[i] = a2.copy()
-    print()
+    # print()
 
     expected_area, area_ci = mean_and_ci(a2, z=z, ddof=ddof)
     expected_rc, rc_ci = mean_and_ci(1 - (a2 / a1), z=z, ddof=ddof)
@@ -66,14 +66,14 @@ def find_pow2_upper_bound(samples, threshold, cache, z=1.96, ddof=1):
     rc_cis.append(rc_ci)
     area_cis.append(area_ci)
     while rc_ci[1] > threshold:
-        print_rc_ci_msg(rc_ci, threshold)
+        # print_rc_ci_msg(rc_ci, threshold)
         i += 1
         rc_ci, area_ci = rel_change(2**i, samples, cache, z=z, ddof=ddof)
         tested_is.append(2**i)
         rc_cis.append(rc_ci)
         area_cis.append(area_ci)
 
-    print_rc_ci_msg(rc_ci, threshold)
+    # print_rc_ci_msg(rc_ci, threshold)
 
     return tested_is, rc_cis, area_cis
 
@@ -90,20 +90,20 @@ def minimal_convergence_iteration(samples, threshold, z, ddof):
     while left <= right:
         mid = (left + right) // 2
         rc_ci, area_ci = rel_change(mid, samples, cache, z=z, ddof=ddof)
-        print_rc_ci_msg(rc_ci, threshold)
+        # print_rc_ci_msg(rc_ci, threshold)
 
         tested_is.append(mid)
         rc_cis.append(rc_ci)
         area_cis.append(area_ci)
 
         if rc_ci[1] < threshold:
-            print(f"Lowering upper bound: {right} -> {mid}")
+            # print(f"Lowering upper bound: {right} -> {mid}")
             right = mid - 1
         else:
-            print(f"Raising lower bound: {left} -> {mid}")
+            # print(f"Raising lower bound: {left} -> {mid}")
             left = mid + 1
         if left >= right:
-            print("left >= right, quitting.")
+            # print("left >= right, quitting.")
             break
 
     sorted_order = np.argsort(tested_is)
@@ -144,6 +144,7 @@ if __name__ == "__main__":
     )
 
     # Run shape convergence experiments
+    print("Finding minimum number of iterations for convergence.")
     tested_is, rc_cis, area_cis = minimal_convergence_iteration(
         samples,
         threshold,

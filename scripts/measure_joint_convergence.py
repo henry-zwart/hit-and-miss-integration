@@ -23,7 +23,9 @@ if __name__ == "__main__":
 
     # Parameters
     N_SAMPLES = 450000
+    N_SAMPLES = 600000
     ITER_STEP_SIZE = 25
+    SAMPLE_STEP_SIZE = 50
     ITERATIONS = np.arange(convergent_iters, step=ITER_STEP_SIZE)
     REPEATS = 30
     SAMPLER = Sampler.RANDOM
@@ -37,7 +39,7 @@ if __name__ == "__main__":
         repeats=REPEATS,
         sampler=SAMPLER,
         per_sample=True,
-    )
+    )[..., ::SAMPLE_STEP_SIZE]
 
     # Calculate expected area and CI for each iteration and sample-size
     expected_area, confidence_interval = mean_and_ci(area, ddof=DDOF, z=Z)
@@ -47,14 +49,13 @@ if __name__ == "__main__":
     expected_err, err_ci = mean_and_ci(error, ddof=DDOF, z=Z)
 
     # Save results and experiment metadata
-    # np.save(RESULTS_ROOT / "expected_area.npy", expected_area)
-    # np.save(RESULTS_ROOT / "confidence_intervals.npy", confidence_interval)
     np.save(RESULTS_ROOT / "expected_err.npy", expected_err)
     np.save(RESULTS_ROOT / "err_confidence.npy", err_ci)
     metadata = {
         "max_samples": N_SAMPLES,
         "iterations": ITERATIONS.tolist(),
         "iter_step_size": ITER_STEP_SIZE,
+        "sample_step_size": SAMPLE_STEP_SIZE,
         "repeats": REPEATS,
         "sampling_method": str(SAMPLER),
         "ddof": DDOF,
