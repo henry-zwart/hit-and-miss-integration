@@ -23,6 +23,7 @@ if __name__ == "__main__":
 
     # Parameters
     N_SAMPLES = 450000
+    N_SAMPLES = 600000
     ITER_STEP_SIZE = 25
     SAMPLE_STEP_SIZE = 50
     ITERATIONS = np.arange(convergent_iters, step=ITER_STEP_SIZE)
