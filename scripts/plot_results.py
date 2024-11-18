@@ -80,9 +80,10 @@ def plot_relative_change(fp: str, data: Path, figures: Path):
     axes[0].vlines(iterations, relchange_cis[:, 0], relchange_cis[:, 1])
     axes[0].axhline(y=threshold, color="red", linewidth=0.5, linestyle="dashed")
     axes[0].axvline(converge_iters, color="grey", linewidth=0.5)
+    axes[0].yaxis.tick_right()
     axes[0].set_xlim(0, None)
     axes[0].set_yscale("log")
-    axes[0].set_ylabel("Relative change")
+    axes[0].set_ylabel(r"$\Delta A_i$", labelpad=5)
 
     # Area plot
     upper_conv_area = area_cis[converge_idx, 1]
@@ -90,7 +91,8 @@ def plot_relative_change(fp: str, data: Path, figures: Path):
     axes[1].vlines(iterations, area_cis[:, 0], area_cis[:, 1])
     axes[1].axhline(upper_conv_area, linestyle="dashed", color="red", linewidth=0.5)
     axes[1].axvline(converge_iters, color="grey", linewidth=0.5)
-    axes[1].set_ylabel("Estimated area")
+    axes[1].yaxis.tick_right()
+    axes[1].set_ylabel(r"$A_i$", labelpad=5)
     axes[1].set_ylim(1, None)
     axes[1].set_xlabel("Number of iterations")
 
@@ -123,6 +125,7 @@ def plot_relative_change(fp: str, data: Path, figures: Path):
     zoom_ax.axhline(
         area_cis[converge_idx, 1], linestyle="dashed", color="red", linewidth=0.5
     )
+    zoom_ax.tick_params(axis="y", labelsize=6)
 
     fig.align_ylabels(axes)
     save_fig(fig, fp, figures)
@@ -169,6 +172,7 @@ def plot_convergence_error(
     axes[0].fill_between(iterations, error_iter_lower, error_iter_upper, alpha=0.25)
     axes[0].set_xscale("log")
     axes[0].set_yscale("log")
+    axes[0].yaxis.tick_right()
     axes[0].set_ylabel("Error")
     axes[0].set_xlabel("Number of iterations")
 
@@ -186,6 +190,7 @@ def plot_convergence_error(
         )
     axes[1].set_xscale("log")
     axes[1].set_yscale("log")
+    axes[1].yaxis.tick_right()
     axes[1].set_ylabel("Error")
     axes[1].set_xlabel("Number of samples")
 
