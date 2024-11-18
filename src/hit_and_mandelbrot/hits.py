@@ -1,3 +1,14 @@
+"""
+    Course: Stochastic Simulation
+    Names: Petr Chalupský, Henry Zwart, Tika van Bennekum
+    Student IDs: 15719227, 15393879, 13392425 
+    Assignement: Hit and Miss Integration
+
+    File description:
+        This file contains many different kinds of function that returns the amount of hits within the Mandelbrot set area.
+"""
+
+
 import numba
 import numpy as np
 

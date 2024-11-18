@@ -1,3 +1,14 @@
+"""
+    Course: Stochastic Simulation
+    Names: Petr Chalupský, Henry Zwart, Tika van Bennekum
+    Student IDs: 15719227, 15393879, 13392425 
+    Assignement: Hit and Miss Integration
+
+    File description:
+        This file calculates the Mandelbrot area, it does so by using different kinds of
+        sampling functions.
+"""
+
 import time
 from dataclasses import dataclass
 from enum import StrEnum
@@ -34,6 +45,7 @@ class Samples:
 
 
 def sample_lhs(xmin, xmax, ymin, ymax, n, repeats, strength=1, quiet=False):
+    """ Latin hypercube sampling used. """
     # Sample from [0,1)
     lhs = LatinHypercube(d=2, strength=strength, seed=load_rng())
     range_fn = range if quiet else trange
@@ -62,6 +74,7 @@ def est_outer_area(
     y_min: float,
     y_max: float,
 ):
+    """ Estimates area not in the Mandelbrot set. """
     area = est_area(
         sample_size,
         iterations=iterations,
@@ -88,6 +101,7 @@ def sample_shadow(
     repeats,
     shadow_iters=4,
 ):
+    """ Shadow sampling is used. """
     OUTER_SAMPLE_SIZE = 151**2
     outer_area = est_outer_area(
         OUTER_SAMPLE_SIZE,
@@ -131,6 +145,7 @@ def sample_complex_uniform(
     quiet=False,
     **kwargs,
 ):
+    """ A complex uniform sampling is used. """
     # Load cached RNG
     rng = load_rng()
 
@@ -205,6 +220,7 @@ def est_area(
     quiet: bool = False,
     **kwargs,
 ):
+    """ Function to estimate area. """
     if all((x is None for x in (samples, n_samples, sampler))):
         raise ValueError(
             "Either `samples` or `n_samples` & `sampler` must be specified."
