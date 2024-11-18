@@ -34,7 +34,7 @@ def plot_mandelbrot(fp: str, data: Path, figures: Path):
     hits = np.load(data / "mandelbrot" / "hits.npy")
 
     # Overlay each iteration of Mandelbrot some some transparency
-    fig, ax = plt.subplots(figsize=(8, 8))
+    fig, ax = plt.subplots(figsize=(3.25, 3.25))
     cmap = get_white_to_blue_cmap()
     for iter_hits in hits:
         mask = np.reshape(iter_hits, (side_length, side_length))
@@ -57,40 +57,39 @@ def plot_relative_change(fp: str, data: Path, figures: Path):
         threshold = metadata["convergence_threshold"] * 100
         converge_idx = metadata["min_convergent_idx"]
         converge_iters = metadata["min_convergent_iters"]
-        converge_area = metadata["min_convergent_area"]
 
     iterations = np.load(data_path / "iterations.npy")
     relchange_cis = np.load(data_path / "relchange_cis.npy") * 100  # Scale to pct.
     area_cis = np.load(data_path / "area_cis.npy")
 
     # Make plot
-    fig, axes = plt.subplots(2, sharex=True, figsize=(8.7, 6))
+    sns.set_context(
+        "paper",
+        rc={
+            "axes.linewidth": 0.5,
+            "xtick.major.width": 0.5,
+            "ytick.major.width": 0.5,
+            "ytick.minor.width": 0.4,
+        },
+    )
+    fig, axes = plt.subplots(2, sharex=True, figsize=(3.25, 2.9))
 
     # Error plot
     expected_relchange = relchange_cis.mean(axis=1)
-    axes[0].scatter(iterations, expected_relchange, s=10, marker="x")
+    axes[0].scatter(iterations, expected_relchange, s=5, marker="x")
     axes[0].vlines(iterations, relchange_cis[:, 0], relchange_cis[:, 1])
     axes[0].axhline(y=threshold, color="red", linewidth=0.5, linestyle="dashed")
     axes[0].axvline(converge_iters, color="grey", linewidth=0.5)
-    axes[0].set_xlim(0, None)  # To-do: Check. used to be 1,None
+    axes[0].set_xlim(0, None)
     axes[0].set_yscale("log")
     axes[0].set_ylabel("Relative change")
 
     # Area plot
     upper_conv_area = area_cis[converge_idx, 1]
-    axes[1].scatter(iterations, area_cis.mean(axis=1), s=10)
+    axes[1].scatter(iterations, area_cis.mean(axis=1), s=5)
     axes[1].vlines(iterations, area_cis[:, 0], area_cis[:, 1])
     axes[1].axhline(upper_conv_area, linestyle="dashed", color="red", linewidth=0.5)
     axes[1].axvline(converge_iters, color="grey", linewidth=0.5)
-    axes[1].text(
-        x=1.01,
-        y=converge_area,
-        s=f"{converge_area:.4f}",
-        va="center",
-        ha="left",
-        color="red",
-        transform=axes[1].get_yaxis_transform(),
-    )
     axes[1].set_ylabel("Estimated area")
     axes[1].set_ylim(1, None)
     axes[1].set_xlabel("Number of iterations")
@@ -99,7 +98,7 @@ def plot_relative_change(fp: str, data: Path, figures: Path):
     zoom_ax = axes[1].inset_axes(
         [0.4, 0.37, 0.5, 0.5],
         xlim=(converge_iters - 50, iterations[-1] + 50),
-        ylim=(1.505, 1.510),
+        ylim=(1.507, 1.509),
         xticks=[],
     )
 
@@ -125,6 +124,7 @@ def plot_relative_change(fp: str, data: Path, figures: Path):
         area_cis[converge_idx, 1], linestyle="dashed", color="red", linewidth=0.5
     )
 
+    fig.align_ylabels(axes)
     save_fig(fig, fp, figures)
 
 
@@ -149,7 +149,17 @@ def plot_convergence_error(
     confidence = np.load(data_path / "err_confidence.npy")
 
     # Make plots
-    fig, axes = plt.subplots(2, figsize=(8.7, 6))
+    sns.set_context(
+        "paper",
+        rc={
+            "axes.linewidth": 0.5,
+            "xtick.major.width": 0.5,
+            "ytick.major.width": 0.5,
+            "ytick.minor.width": 0.4,
+            "xtick.minor.width": 0.4,
+        },
+    )
+    fig, axes = plt.subplots(2, figsize=(3.25, 3.25))
 
     # Error due to finite iterations
     error_iter = expect_error[min_iters:, -1]
@@ -192,8 +202,7 @@ def plot_sampler_example(fp: str, data: Path, figures: Path):
         len(Sampler),
         sharex=True,
         sharey=True,
-        # figsize=(12, 5),
-        figsize=(8, 4),
+        figsize=(7, 4),
         subplot_kw=dict(box_aspect=1),
     )
 
@@ -230,7 +239,10 @@ def plot_sampler_estimates(
     with (data / "sample_convergence/metadata.json").open("r") as f:
         max_samples = json.load(f)["global_max_samples"]
 
-    fig, axes = plt.subplots(len(Sampler) + 1, sharey=True, sharex=True, figsize=(6, 4))
+    sns.set_context("paper")
+    fig, axes = plt.subplots(
+        len(Sampler) + 1, sharey=True, sharex=True, figsize=(3.25, 3.25)
+    )
 
     # Target area and absolute convergence bounds
     lower = target_area * (1 - threshold)
@@ -325,12 +337,10 @@ def plot_sampler_convergence(
     with (data / "shape_convergence/metadata.json").open("r") as f:
         target_area = json.load(f)["min_convergent_area"]
 
-    # with (data / "sample_convergence/metadata.json").open("r") as f:
-    #     max_samples = json.load(f)["global_max_samples"]
-
     data_path = data / "sample_convergence"
 
-    fig, ax = plt.subplots(figsize=(6, 3.5))
+    sns.set_context("paper")
+    fig, ax = plt.subplots(figsize=(3.25, 3.25))
     results = []
     for sampler in Sampler:
         area = np.load(data_path / f"{sampler}_measured_area.npy")
@@ -395,9 +405,9 @@ if __name__ == "__main__":
     random.seed(42)
 
     # === Default matplotlib settings
-    FONT_SIZE_SMALL = 10
-    FONT_SIZE_DEFAULT = 12
-    FONT_SIZE_LARGE = 14
+    FONT_SIZE_SMALL = 9
+    FONT_SIZE_DEFAULT = 10
+    FONT_SIZE_LARGE = 12
 
     plt.rc("font", family="Georgia")
     plt.rc("font", weight="normal")  # controls default font
@@ -409,7 +419,7 @@ if __name__ == "__main__":
     plt.rc("ytick", labelsize=FONT_SIZE_SMALL)  # fontsize of the tick labels
 
     # plt.rc("axes", titlepad=10)  # add space between title and plot
-    plt.rc("figure", dpi=500)  # fix output resolution
+    plt.rc("figure", dpi=700)  # fix output resolution
 
     # Base paths
     DATA = Path("data")
