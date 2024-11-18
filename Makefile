@@ -11,10 +11,12 @@ FIGURE_NAMES = \
 
 FIGURES = $(patsubst %, results/figures/%, $(FIGURE_NAMES))
 
+ENTRYPOINT ?= uv run
+
 all: results/plot_metadata.json results/experiment_metadata.json
 
 results/plot_metadata.json: scripts/plot_results.py results/experiment_metadata.json | $(FIGURES_DIR)
-	uv run $<
+	$(ENTRYPOINT) $<
 
 $(FIGURES_DIR):
 	mkdir -p $@
@@ -26,22 +28,22 @@ results/experiment_metadata.json: \
 			data/joint_convergence/metadata.json \
 			data/sample_convergence/metadata.json \
 			data/sample_adaptive/metadata.json
-	uv run $<
+	$(ENTRYPOINT) $<
 
 data/mandelbrot/metadata.json: scripts/deterministic_mandelbrot.py | $(DATA_DIR)
-	uv run $<
+	$(ENTRYPOINT) $<
 
 data/shape_convergence/metadata.json: scripts/measure_shape_convergence.py | $(DATA_DIR)
-	uv run $<
+	$(ENTRYPOINT) $<
 
 data/joint_convergence/metadata.json: scripts/measure_joint_convergence.py data/shape_convergence/metadata.json | $(DATA_DIR)
-	uv run $<
+	$(ENTRYPOINT) $<
 
 data/sample_convergence/metadata.json: scripts/measure_sample_convergence.py data/shape_convergence/metadata.json | $(DATA_DIR)
-	uv run $<
+	$(ENTRYPOINT) $<
 
 data/sample_adaptive/metadata.json: scripts/sample_adaptive.py data/shape_convergence/metadata.json | $(DATA_DIR)
-	uv run $<
+	$(ENTRYPOINT) $<
 
 $(DATA_DIR):
 	mkdir -p $@

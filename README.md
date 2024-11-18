@@ -1,8 +1,74 @@
 # Assignment 1 for Stochastic Simulation
 
-See the [assignment specification](assignment_spec.pdf).
+## Quickstart - Reproducing Results
 
-## Getting started
+Ensure that you have a working version of `make` installed:
+
+```zsh
+# Should print 'GNU Make X.XX, etc.'
+make --version
+```
+
+The [recommended approach](#with-uv-recommended) to running the experiments requires an installation of the [uv](https://github.com/astral-sh/uv) Python package manager.
+
+If this is not installed, follow the [alternative instructions](#without-uv) for running experiments.
+
+### With uv (recommended)
+
+Ensure [uv](https://github.com/astral-sh/uv) is installed locally.
+
+uv handles package and Python versioning, ensuring a consistent experiment environment across machines and operating systems.
+
+To reproduce the results execute the following steps:
+
+```zsh
+cd path/to/repository
+
+# If you have limited computational resources
+make
+
+# If you have at least ~32GB memory and several CPU cores
+make -j 4
+```
+
+After this completes, the experimental results (metadata + figures) are located in `./results`, and intermediary data in `./data`.
+
+### Without uv
+
+Note that only the [uv approach to running experiments](#with-uv-recommended) has been thoroughly tested, and is therefore recommended over this method. 
+
+The experiments rely on Python3.12, and the packages outlined in [requirements.txt](requirements.txt).
+
+> **Note:** If your Python3.12 executable is called something other than `python3.12`, replace this accordingly in the following steps.
+
+To reproduce the results, execute the following steps:
+
+```zsh
+cd path/to/repository
+
+# == Create a virtual environment
+python3.12 -m venv env
+
+# == Activate the virtual environment
+source env/bin/activate # On macOS or Linux
+.\env\Scripts\activate # On windows
+
+# == Install package and dependencies
+pip install .
+
+# == Run the experiments
+# === If you have limited computational resources
+ENTRYPOINT=python make
+
+# === If you have at least ~32GB memory and several CPU cores
+ENTRYPOINT=python make -j 4
+```
+
+After this completes, the experimental results (metadata + figures) are located in `./results`, and intermediary data in `./data`.
+
+
+## Development - Getting started
+See the [assignment specification](assignment_spec.pdf).
 
 This repository uses _uv_ to manage Python and its dependencies, and _pre-commit_ to run
 automatic code linting & formatting.
@@ -73,4 +139,4 @@ time we commit code to git. Both pre-commit hooks come from the
 
 These should help to keep code tidy and consistent, with no extra effort on our part. 
 Both of the hooks should run automagically if you've followed the setup instructions for
-[installing pre-commit with uv](#getting-started).
+[installing pre-commit with uv](#development---getting-started).
