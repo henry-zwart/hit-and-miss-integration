@@ -1,3 +1,13 @@
+"""
+    Course: Stochastic Simulation
+    Names: Petr Chalupský, Henry Zwart, Tika van Bennekum
+    Student IDs: 15719227, 15393879, 13392425 
+    Assignement: Hit and Miss Integration
+
+    File description:
+        Script to run the code that measures the joint convergence mandelbrot code.
+"""
+
 import json
 import random
 from pathlib import Path

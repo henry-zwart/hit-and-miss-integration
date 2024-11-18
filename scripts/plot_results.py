@@ -1,3 +1,13 @@
+"""
+    Course: Stochastic Simulation
+    Names: Petr Chalupský, Henry Zwart, Tika van Bennekum
+    Student IDs: 15719227, 15393879, 13392425 
+    Assignement: Hit and Miss Integration
+
+    File description:
+        Script that plots the results from our functions.
+"""
+
 import json
 import random
 from pathlib import Path
