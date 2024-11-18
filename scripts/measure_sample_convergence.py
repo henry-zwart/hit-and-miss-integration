@@ -21,14 +21,13 @@ from hit_and_mandelbrot.mandelbrot import Sampler, est_area, sample_complex_unif
 from hit_and_mandelbrot.random_seed import load_rng
 from hit_and_mandelbrot.statistics import mean_and_ci
 
-"""
-We can measure sample convergence for random + shadow sampling via bootstrapping.
-Record hits for largest sample size. To measure the sample convergence with k samples,
-select k rows at random. Repeat for N_REPEATS.
-"""
-
 
 def create_sampler_example_data(n_samples: int, iterations: int, result_dir: Path):
+    """
+    We can measure sample convergence for random + shadow sampling via bootstrapping.
+    Record hits for largest sample size. To measure the sample convergence with k samples,
+    select k rows at random. Repeat for N_REPEATS.
+    """
     for sampler in Sampler:
         samples = sample_complex_uniform(
             n_samples,

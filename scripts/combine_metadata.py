@@ -12,6 +12,7 @@ from pathlib import Path
 
 
 def main(data_dir: Path, results_dir: Path):
+    """ Function to lead Jason files. """
     big_meta = {}
 
     with (data_dir / "mandelbrot/metadata.json").open("r") as f:

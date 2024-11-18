@@ -24,11 +24,13 @@ from hit_and_mandelbrot.random_seed import load_rng
 
 
 def save_fig(fig, filename, output_dir, rect=None):
+    """ Function to save figures. """
     fig.tight_layout(rect=rect)
     fig.savefig(output_dir / f"{filename}.png", bbox_inches="tight")
 
 
 def get_white_to_blue_cmap():
+    """ Function to generate cmap. """
     colors = plt.cm.Blues(np.linspace(0, 1, 256))
     colors[:128] = mcolors.to_rgba("white")  # Modify lower half to be white
     custom_blues = mcolors.LinearSegmentedColormap.from_list("CustomBlues", colors)
@@ -36,6 +38,7 @@ def get_white_to_blue_cmap():
 
 
 def plot_mandelbrot(fp: str, data: Path, figures: Path):
+    """ Function to plot Mandelbrot set area. """
     # Load data
     with (data / "mandelbrot" / "metadata.json").open("r") as f:
         metadata = json.load(f)
@@ -60,6 +63,7 @@ def plot_mandelbrot(fp: str, data: Path, figures: Path):
 
 
 def plot_relative_change(fp: str, data: Path, figures: Path):
+    """ Function to plot relative change. """
     # Load data
     data_path = data / "shape_convergence"
     with (data_path / "metadata.json").open("r") as f:
@@ -149,6 +153,7 @@ def plot_convergence_error(
     data: Path,
     figures: Path,
 ):
+    """ Function to plot convergence error. """
     # Load data
     data_path = data / "joint_convergence"
     with (data_path / "metadata.json").open("r") as f:
@@ -208,6 +213,7 @@ def plot_convergence_error(
 
 
 def plot_sampler_example(fp: str, data: Path, figures: Path):
+    """ Function to plot sampler example. """
     overlay_hits = np.load(data / "mandelbrot" / "hits.npy")[4]
     mask = np.reshape(overlay_hits, (int(np.sqrt(len(overlay_hits))), -1))
     cmap = get_white_to_blue_cmap()
@@ -247,6 +253,7 @@ def plot_sampler_example(fp: str, data: Path, figures: Path):
 def plot_sampler_estimates(
     fp: str, threshold: float, min_samples: int, data: Path, figures: Path
 ):
+    """ Function to plot sampler estimates. """
     # Load data
     with (data / "shape_convergence/metadata.json").open("r") as f:
         target_area = json.load(f)["min_convergent_area"]
@@ -351,6 +358,7 @@ def final_true(mask, axis, invalid_val=-1):
 def plot_sampler_convergence(
     fp: str, threshold: float, data: Path, figures: Path, results_dir: Path
 ):
+    """ Function to plot sampler convergence. """
     # Load data
     with (data / "shape_convergence/metadata.json").open("r") as f:
         target_area = json.load(f)["min_convergent_area"]

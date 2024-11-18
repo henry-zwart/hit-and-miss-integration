@@ -20,6 +20,7 @@ from hit_and_mandelbrot.random_seed import load_rng
 
 
 def rel_change(i, samples, cache, z=1.96, ddof=1):
+    """ Function to calculate relative change. """
     assert i > 0
 
     # Check if we already have (i // 2) cached
@@ -46,6 +47,7 @@ def rel_change(i, samples, cache, z=1.96, ddof=1):
 
 
 def find_pow2_upper_bound(samples, threshold, cache, z=1.96, ddof=1):
+    """ Function to find the upper bound. """
     tested_is = []
     rc_cis = []
     area_cis = []
