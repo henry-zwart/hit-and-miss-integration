@@ -241,7 +241,7 @@ def plot_sampler_estimates(
 
     sns.set_context("paper")
     fig, axes = plt.subplots(
-        len(Sampler) + 1, sharey=True, sharex=True, figsize=(3.25, 3.25)
+        len(Sampler) + 1, sharey=True, sharex=True, figsize=(3.25, 3.5)
     )
 
     # Target area and absolute convergence bounds
@@ -299,6 +299,9 @@ def plot_sampler_estimates(
     )
     axes[4].set_ylabel("Adaptive", rotation=0, fontsize=10, va="center", ha="left")
     axes[4].yaxis.set_label_position("right")
+
+    axes[4].set_xlabel("Sample size")
+    fig.supylabel("Estimated area")
 
     # Set axis limits consistently
     axes[0].set_ylim(1.4, 1.6)
